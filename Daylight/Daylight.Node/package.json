@@ -1,0 +1,14 @@
+{
+  "name": "Daylight.Node",
+  "version": "0.0.0",
+  "description": "Daylight.Node",
+  "main": "app.js",
+  "author": {
+    "name": "Tim Stott",
+    "email": ""
+  },
+  "dependencies": {
+    "suncalc": "^1.6.0",
+    "underscore": "^1.7.0"
+  }
+}
