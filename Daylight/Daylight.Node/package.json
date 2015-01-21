@@ -8,6 +8,8 @@
     "email": ""
   },
   "dependencies": {
+    "csv-stringify": "0.0.5",
+    "moment": "^2.9.0",
     "suncalc": "^1.6.0",
     "underscore": "^1.7.0"
   }
