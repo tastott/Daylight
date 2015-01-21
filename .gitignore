@@ -181,3 +181,4 @@ UpgradeLog*.htm
 
 # Microsoft Fakes
 FakesAssemblies/
+/Daylight/Daylight.Node/.ntvs_analysis.dat
