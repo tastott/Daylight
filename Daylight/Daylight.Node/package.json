@@ -9,7 +9,10 @@
   },
   "dependencies": {
     "csv-stringify": "0.0.5",
+    "lwip": "0.0.6",
     "moment": "^2.9.0",
+    "open": "0.0.5",
+    "q": "^1.1.2",
     "suncalc": "^1.6.0",
     "underscore": "^1.7.0"
   }
