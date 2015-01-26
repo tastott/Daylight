@@ -42,6 +42,7 @@
     <TypeScriptCompile Include="export-vector.ts" />
     <TypeScriptCompile Include="Scripts\typings\node\node.d.ts" />
     <TypeScriptCompile Include="typings\d3\d3.d.ts" />
+    <TypeScriptCompile Include="typings\jsdom\jsdom.d.ts" />
     <TypeScriptCompile Include="typings\moment\moment.d.ts" />
     <TypeScriptCompile Include="typings\open\open.d.ts" />
     <TypeScriptCompile Include="typings\q\Q.d.ts" />
@@ -53,6 +54,7 @@
     <Folder Include="Scripts\typings\node\" />
     <Folder Include="typings\" />
     <Folder Include="typings\d3\" />
+    <Folder Include="typings\jsdom\" />
     <Folder Include="typings\moment\" />
     <Folder Include="typings\open\" />
     <Folder Include="typings\q\" />

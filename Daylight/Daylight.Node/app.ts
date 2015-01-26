@@ -38,7 +38,7 @@ var days: dl.Daylight[] = _.range(dayCount - 1)
     });
 
 
-exSvg.ExportToSvg(days, 'daylight.svg')
+exSvg.ExportToSvg(days, 1024, 768, 'daylight.svg')
     .then(imagePath => {
         open(imagePath);
     })
