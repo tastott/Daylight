@@ -2,7 +2,7 @@
 import _ = require('underscore');
 import moment = require('moment');
 import exCsv = require('./export-csv');
-import exImg = require('./export-image');
+import exSvg = require('./export-vector');
 var lwip = require('lwip');
 import dl = require('./daylight');
 import open = require('open');
@@ -38,7 +38,7 @@ var days: dl.Daylight[] = _.range(dayCount - 1)
     });
 
 
-exImg.ExportToImage(days, 'daylight.png', 8, 2)
+exSvg.ExportToSvg(days, 'daylight.svg')
     .then(imagePath => {
         open(imagePath);
     })
