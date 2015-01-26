@@ -182,3 +182,11 @@ UpgradeLog*.htm
 # Microsoft Fakes
 FakesAssemblies/
 /Daylight/Daylight.Node/.ntvs_analysis.dat
+/Daylight/Daylight.Node/app.js.map
+/Daylight/Daylight.Node/app.js
+/Daylight/Daylight.Node/daylight.js
+/Daylight/Daylight.Node/daylight.js.map
+/Daylight/Daylight.Node/export-csv.js
+/Daylight/Daylight.Node/export-csv.js.map
+/Daylight/Daylight.Node/export-image.js
+/Daylight/Daylight.Node/export-image.js.map
