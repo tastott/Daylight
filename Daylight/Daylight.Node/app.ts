@@ -3,7 +3,6 @@ import _ = require('underscore');
 import moment = require('moment');
 import exCsv = require('./export-csv');
 import exSvg = require('./export-vector');
-var lwip = require('lwip');
 import dl = require('./daylight');
 import open = require('open');
 

@@ -10,7 +10,6 @@
   "dependencies": {
     "csv-stringify": "0.0.5",
     "d3": "^3.5.3",
-    "jsdom": "^3.0.2",
     "moment": "^2.9.0",
     "open": "0.0.5",
     "q": "^1.1.2",

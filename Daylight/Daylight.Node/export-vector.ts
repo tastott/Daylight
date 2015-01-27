@@ -1,6 +1,5 @@
 ﻿import dl = require('daylight');
 import q = require('q');
-import jsdom = require('jsdom');
 import fs = require('fs');
 import d3 = require('d3');
 
@@ -37,6 +36,14 @@ export function ExportToSvg(days: dl.Daylight[],
         .domain([0, 24])
         .range([0, height]);
 
+   
+    var yAxis = d3.svg.axis()
+        .scale(y);
+
+    var axisGroup = svg.append("g");
+
+    axisGroup.call(yAxis);
+    /*
     var group = svg.append("g");
 
     //Background
@@ -46,41 +53,41 @@ export function ExportToSvg(days: dl.Daylight[],
         .style("fill", colours.day);
 
     var areas: Area[] = [
-        { Name: 'MorningNight', Bottom: d => 0, Top: d => d.DawnHour, Colour: colours.night },
+        { Name: 'NightAm', Bottom: d => 0, Top: d => d.DawnHour, Colour: colours.night },
         { Name: 'Dawn', Bottom: d => d.DawnHour, Top: d => d.SunriseHour, Colour: colours.twilight },
-        //{ Bottom: d => d.SunsetHour, Top: d => d.DuskHour, Colour: colours.twilight },
-        //{ Bottom: d => d.DuskHour, Top: d => height, Colour: colours.night },
+        { Name: 'Dusk',Bottom: d => d.SunsetHour, Top: d => d.DuskHour, Colour: colours.twilight },
+        { Name: 'NightPm', Bottom: d => d.DuskHour, Top: d => 24, Colour: colours.night },
     ];
 
-    var layers = areas.map(area => {
-        return {
-            name: area.Name,
-            values: days.map(day => {
-                return {
-                    x: day.Date.toDate(),
-                    y: area.Top(day)
-                };
-            })
-        };
-    });
-
-    var stack = d3.layout.stack()
-        .x((d: Date) => x(d))
-        .y((d: number) => y(d))
-        .offset('zero');
-
-    group.data(stack(layers));
-
-    //areas.forEach(area => {
-    //    group.append("path")
-    //        .attr("d", d3.svg.area()
-    //            .x((d: dl.Daylight) => x(d.Date.toDate()))
-    //            .y0((d: dl.Daylight) => x(area.Bottom(d)))
-    //            .y1((d: dl.Daylight) => y(area.Top(d)))
-    //            .interpolate('linear')(days)
-    //        )
-    //        .attr("fill", area.Colour);
+    //var layers = areas.map(area => {
+    //    return {
+    //        name: area.Name,
+    //        values: days.map(day => {
+    //            return {
+    //                x: day.Date.toDate(),
+    //                y: area.Top(day)
+    //            };
+    //        })
+    //    };
     //});
+
+    //var stack = d3.layout.stack()
+    //    .x((d: Date) => x(d))
+    //    .y((d: number) => y(d))
+    //    .offset('zero');
+
+    //group.data(stack(layers));
+
+    areas.forEach(area => {
+        group.append("path")
+            .attr("d", d3.svg.area()
+                .x((d: dl.Daylight) => x(d.Date.toDate()))
+                .y0((d: dl.Daylight) => y(area.Bottom(d)))
+                .y1((d: dl.Daylight) => y(area.Top(d)))
+                .interpolate('linear')(days)
+            )
+            .attr("fill", area.Colour);
+    });*/
 
 
     fs.writeFile(filepath, d3.select('body').html(), error => {
