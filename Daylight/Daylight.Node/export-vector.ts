@@ -41,24 +41,42 @@ export function ExportToSvg(days: dl.Daylight[],
         .range([0, height]);
 
 
-    var yAxis = d3.svg.axis()
-        .scale(y)
-        .ticks(24)
-        .tickSize(-width, 0)
-        .tickFormat(v => {
-            if (v < 5 || v > 22) return '';
-            else return v.toString();
-        })
-        .tickPadding(axisLabelPaddingY)
-        .orient('left');
+    var yAxes = [
+        d3.svg.axis()
+            .orient('left')
+            .tickSize(-width, 0),
+        d3.svg.axis()
+            .orient('right')
+            .tickSize(0)
+    ];
 
-    var xAxis = d3.svg.axis()
-        .scale(x)
-        .ticks(12)
-        .tickSize(-height, 0)
-        .tickPadding(axisLabelPaddingX)
-        .tickFormat(d3.time.format('%b'))
-        .orient('bottom');
+    yAxes.forEach(yAxis =>
+        yAxis.scale(y)
+            .ticks(24)
+            .tickFormat(v => {
+                if (v < 1 || v > 23) return '';
+                else return v.toString();
+            })
+            .tickPadding(axisLabelPaddingY)
+    );
+
+    var xAxes = [
+        d3.svg.axis()
+            .orient('top')
+            .tickSize(0)
+            .tickPadding(axisLabelPaddingY),
+        d3.svg.axis()
+            .orient('bottom')
+            .tickSize(-height, 0)
+            .tickPadding(axisLabelPaddingX)
+    ];
+
+    xAxes.forEach(xAxis =>
+        xAxis.scale(x)
+            .ticks(12)
+            .tickFormat(d3.time.format('%b'))
+    );
+        
 
     var group = svg.append("g")
         .attr('transform', 'translate(' + margin + ',' + margin + ')');
@@ -113,8 +131,12 @@ export function ExportToSvg(days: dl.Daylight[],
         .attr('transform', 'translate(' + margin + ',' + margin + ')');
 
 
-    axisGroup.append('g').call(yAxis);
-    axisGroup.append('g').call(xAxis)
+    axisGroup.append('g').call(yAxes[0]);
+    axisGroup.append('g').call(yAxes[1])
+        .attr('transform', 'translate(' + width + ', 0)');
+
+    axisGroup.append('g').call(xAxes[0]);
+    axisGroup.append('g').call(xAxes[1])
         .attr('transform', 'translate(0, ' + height + ')');
 
     axisGroup
