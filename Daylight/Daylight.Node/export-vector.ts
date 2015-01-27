@@ -10,9 +10,22 @@ interface Area {
     Colour: any
 }
 
+enum Colour {
+    Night,
+    Day,
+    Twilight,
+    AxisTicks,
+    Title
+}
+
+interface ColourSet {
+    [index: number]: D3.Color.RGBColor
+}
+
 export function ExportToSvg(days: dl.Daylight[],
     width: number,
     height: number,
+    title : string,
     filepath: string): Q.Promise<string> {
 
     var deferred = q.defer<string>();
@@ -20,12 +33,15 @@ export function ExportToSvg(days: dl.Daylight[],
     var margin = 32;
     var axisLabelPaddingX = 16;
     var axisLabelPaddingY = 4;
+    var titleMargin = 16;
+    var titleSize = 40;
 
-    var colours = {
-        night: 'black',
-        day: 'white',
-        twilight: 'gray'
-    };
+    var colours: ColourSet = {};
+    colours[Colour.Night] = d3.rgb('black');
+    colours[Colour.Day] = d3.rgb(255, 255, 0);
+    colours[Colour.Title] = colours[Colour.Day];
+    colours[Colour.Twilight] = d3.interpolateRgb(colours[Colour.Night], colours[Colour.Day])(0.5);
+    colours[Colour.AxisTicks] = colours[Colour.Day];
 
     var svg = d3.select('body')
         .append('svg')
@@ -85,33 +101,14 @@ export function ExportToSvg(days: dl.Daylight[],
     var background = group.append("rect")
         .attr("width", width)
         .attr("height", height)
-        .style("fill", colours.day);
+        .style("fill", colours[Colour.Day]);
 
     var areas: Area[] = [
-        { Name: 'NightAm', Bottom: d => 0, Top: d => d.DawnHour, Colour: colours.night },
-        { Name: 'Dawn', Bottom: d => d.DawnHour, Top: d => d.SunriseHour, Colour: colours.twilight },
-        { Name: 'Dusk',Bottom: d => d.SunsetHour, Top: d => d.DuskHour, Colour: colours.twilight },
-        { Name: 'NightPm', Bottom: d => d.DuskHour, Top: d => 24, Colour: colours.night },
+        { Name: 'NightAm', Bottom: d => 0, Top: d => d.DawnHour, Colour: colours[Colour.Night] },
+        { Name: 'Dawn', Bottom: d => d.DawnHour, Top: d => d.SunriseHour, Colour: colours[Colour.Twilight] },
+        { Name: 'Dusk', Bottom: d => d.SunsetHour, Top: d => d.DuskHour, Colour: colours[Colour.Twilight] },
+        { Name: 'NightPm', Bottom: d => d.DuskHour, Top: d => 24, Colour: colours[Colour.Night] },
     ];
-
-    //var layers = areas.map(area => {
-    //    return {
-    //        name: area.Name,
-    //        values: days.map(day => {
-    //            return {
-    //                x: day.Date.toDate(),
-    //                y: area.Top(day)
-    //            };
-    //        })
-    //    };
-    //});
-
-    //var stack = d3.layout.stack()
-    //    .x((d: Date) => x(d))
-    //    .y((d: number) => y(d))
-    //    .offset('zero');
-
-    //group.data(stack(layers));
 
     areas.forEach(area => {
         group.append("path")
@@ -141,10 +138,17 @@ export function ExportToSvg(days: dl.Daylight[],
 
     axisGroup
         .selectAll('line')
-        .style('stroke', 'lightgray')
+        .style('stroke', colours[Colour.AxisTicks].toString())
         .style('stroke-width', '1px');
 
 
+    svg.append('text')
+        .attr('x', margin + titleMargin)
+        .attr('y', margin + titleMargin + titleSize)
+        .attr('fill', colours[Colour.Day])
+        .attr('font-size', titleSize + 'px')
+        .text(title);
+        
 
     fs.writeFile(filepath, d3.select('body').html(), error => {
         if (error) deferred.reject(error);
