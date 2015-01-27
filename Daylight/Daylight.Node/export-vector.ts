@@ -17,6 +17,8 @@ export function ExportToSvg(days: dl.Daylight[],
 
     var deferred = q.defer<string>();
 
+    var margin = 20;
+
     var colours = {
         night: 'black',
         day: 'white',
@@ -25,8 +27,8 @@ export function ExportToSvg(days: dl.Daylight[],
 
     var svg = d3.select('body')
         .append('svg')
-        .attr('width', width)
-        .attr('height', height);
+        .attr('width', width + (2 * margin))
+        .attr('height', height + (2 * margin));
 
     var x = d3.time.scale()
         .domain([days[0].Date.toDate(), days[days.length - 1].Date.toDate()])
@@ -36,15 +38,20 @@ export function ExportToSvg(days: dl.Daylight[],
         .domain([0, 24])
         .range([0, height]);
 
-   
+
     var yAxis = d3.svg.axis()
-        .scale(y);
+        .scale(y)
+        .ticks(24)
+        .tickSize(-width, 0)
+        .tickFormat(v => {
+            if (v < 5 || v > 22) return '';
+            else return v.toString();
+        })
+        .orient('left');
 
-    var axisGroup = svg.append("g");
 
-    axisGroup.call(yAxis);
-    /*
-    var group = svg.append("g");
+    var group = svg.append("g")
+        .attr('transform', 'translate(' + margin + ',' + margin + ')');
 
     //Background
     var background = group.append("rect")
@@ -87,7 +94,20 @@ export function ExportToSvg(days: dl.Daylight[],
                 .interpolate('linear')(days)
             )
             .attr("fill", area.Colour);
-    });*/
+    });
+
+
+
+
+    var axisGroup = svg.append("g")
+        .attr('transform', 'translate(' + margin + ',' + margin + ')');
+       
+
+    axisGroup.call(yAxis)
+        .selectAll('line')
+        .style('stroke', 'lightgray')
+        .style('stroke-width', '1px');
+
 
 
     fs.writeFile(filepath, d3.select('body').html(), error => {
