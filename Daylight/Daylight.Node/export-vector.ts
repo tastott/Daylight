@@ -17,7 +17,9 @@ export function ExportToSvg(days: dl.Daylight[],
 
     var deferred = q.defer<string>();
 
-    var margin = 20;
+    var margin = 32;
+    var axisLabelPaddingX = 16;
+    var axisLabelPaddingY = 4;
 
     var colours = {
         night: 'black',
@@ -47,8 +49,16 @@ export function ExportToSvg(days: dl.Daylight[],
             if (v < 5 || v > 22) return '';
             else return v.toString();
         })
+        .tickPadding(axisLabelPaddingY)
         .orient('left');
 
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .ticks(12)
+        .tickSize(-height, 0)
+        .tickPadding(axisLabelPaddingX)
+        .tickFormat(d3.time.format('%b'))
+        .orient('bottom');
 
     var group = svg.append("g")
         .attr('transform', 'translate(' + margin + ',' + margin + ')');
@@ -101,9 +111,13 @@ export function ExportToSvg(days: dl.Daylight[],
 
     var axisGroup = svg.append("g")
         .attr('transform', 'translate(' + margin + ',' + margin + ')');
-       
 
-    axisGroup.call(yAxis)
+
+    axisGroup.append('g').call(yAxis);
+    axisGroup.append('g').call(xAxis)
+        .attr('transform', 'translate(0, ' + height + ')');
+
+    axisGroup
         .selectAll('line')
         .style('stroke', 'lightgray')
         .style('stroke-width', '1px');
