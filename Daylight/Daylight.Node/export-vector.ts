@@ -34,11 +34,11 @@ export function ExportToSvg(days: dl.Daylight[],
     var axisLabelPaddingX = 16;
     var axisLabelPaddingY = 4;
     var titleMargin = 16;
-    var titleSize = 40;
+    var titleSize = 64;
 
     var colours: ColourSet = {};
-    colours[Colour.Night] = d3.rgb('black');
-    colours[Colour.Day] = d3.rgb(255, 255, 0);
+    colours[Colour.Night] = d3.rgb('#0B0B3B');
+    colours[Colour.Day] = d3.rgb('#F4FA58');
     colours[Colour.Title] = colours[Colour.Day];
     colours[Colour.Twilight] = d3.interpolateRgb(colours[Colour.Night], colours[Colour.Day])(0.5);
     colours[Colour.AxisTicks] = colours[Colour.Day];
@@ -136,9 +136,28 @@ export function ExportToSvg(days: dl.Daylight[],
     axisGroup.append('g').call(xAxes[1])
         .attr('transform', 'translate(0, ' + height + ')');
 
+    svg.append("linearGradient")
+        .attr("id", "line-gradient")
+        .attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", 0).attr("y1", y(0))
+        .attr("x2", 0).attr("y2", y(1000))
+        .selectAll("stop")
+        .data([
+            { offset: "0%", color: "red" },
+            { offset: "40%", color: "red" },
+            { offset: "40%", color: "black" },
+            { offset: "62%", color: "black" },
+            { offset: "62%", color: "lawngreen" },
+            { offset: "100%", color: "lawngreen" }
+        ])
+        .enter().append("stop")
+        .attr("offset", function (d) { return d.offset; })
+        .attr("stop-color", function (d) { return d.color; });
+
     axisGroup
         .selectAll('line')
         .style('stroke', colours[Colour.AxisTicks].toString())
+        //.style('stroke', 'url(#line-gradient)')
         .style('stroke-width', '1px');
 
 
