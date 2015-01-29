@@ -22,13 +22,55 @@ interface ColourSet {
     [index: number]: D3.Color.RGBColor
 }
 
+export function TestSvg(filepath: string): Q.Promise<string> {
+
+    var deferred = q.defer<string>();
+
+    var width = 400;
+    var height = 300;
+
+    var svg = d3.select('body').append('svg')
+        .attr('width', width)
+        .attr('height', height);
+
+    var defs = svg.append('defs');
+
+    var lineGradient = defs.append('linearGradient')
+        .attr("id", "line-gradient")
+        .attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", 0)
+        .attr("y1", 0)
+        .attr("x2", width)
+        .attr("y2", height)
+        .selectAll("stop")
+        .data([
+            { offset: "0%", color: "white" },
+            { offset: "100%", color: "black" }
+        ])
+        .enter().append("stop")
+        .attr("offset", function (d) { return d.offset; })
+        .attr("stop-color", function (d) { return d.color; });
+
+    var line = svg.append('line')
+        .attr('x', 100)
+        .attr('y0', 0)
+        .attr('y1', 300)
+        .style('stroke', 'url(#line-gradient)')
+        .style('stroke-width', '5px');
+
+    fs.writeFile(filepath, d3.select('body').html(), error => {
+        if (error) deferred.reject(error);
+        else deferred.resolve(filepath);
+    });
+
+    return deferred.promise;
+}
+
 export function ExportToSvg(days: dl.Daylight[],
     width: number,
     height: number,
     title : string,
     filepath: string): Q.Promise<string> {
-
-    var deferred = q.defer<string>();
 
     var margin = 32;
     var axisLabelPaddingX = 16;
@@ -136,18 +178,18 @@ export function ExportToSvg(days: dl.Daylight[],
     axisGroup.append('g').call(xAxes[1])
         .attr('transform', 'translate(0, ' + height + ')');
 
-    svg.append("linearGradient")
+    var defs = svg.append('defs');
+
+    defs.append("linearGradient")
         .attr("id", "line-gradient")
         .attr("gradientUnits", "userSpaceOnUse")
-        .attr("x1", 0).attr("y1", y(0))
-        .attr("x2", 0).attr("y2", y(1000))
+        .attr("x1", 0)
+        .attr("y1", 0)
+        .attr("x2", width)
+        .attr("y2", height)
         .selectAll("stop")
         .data([
             { offset: "0%", color: "red" },
-            { offset: "40%", color: "red" },
-            { offset: "40%", color: "black" },
-            { offset: "62%", color: "black" },
-            { offset: "62%", color: "lawngreen" },
             { offset: "100%", color: "lawngreen" }
         ])
         .enter().append("stop")
@@ -156,8 +198,8 @@ export function ExportToSvg(days: dl.Daylight[],
 
     axisGroup
         .selectAll('line')
-        .style('stroke', colours[Colour.AxisTicks].toString())
-        //.style('stroke', 'url(#line-gradient)')
+        //.style('stroke', colours[Colour.AxisTicks].toString())
+        .style('stroke', 'url(#line-gradient)')
         .style('stroke-width', '1px');
 
 
@@ -169,7 +211,17 @@ export function ExportToSvg(days: dl.Daylight[],
         .text(title);
         
 
-    fs.writeFile(filepath, d3.select('body').html(), error => {
+    return saveD3ToSvg(d3.select('body'), filepath); 
+}
+
+function saveD3ToSvg(selection: D3.Selection, filepath: string): Q.Promise<string> {
+
+    var deferred = q.defer<string>();
+
+    var html = selection.html();
+    html = html.replace(/lineargradient/, 'linearGradient');
+
+    fs.writeFile(filepath, html, error => {
         if (error) deferred.reject(error);
         else deferred.resolve(filepath);
     });
