@@ -2,6 +2,7 @@
 import q = require('q');
 import fs = require('fs');
 import d3 = require('d3');
+import _ = require('underscore');
 
 interface Area {
     Name: string;
@@ -170,38 +171,26 @@ export function ExportToSvg(days: dl.Daylight[],
         .attr('transform', 'translate(' + margin + ',' + margin + ')');
 
 
-    axisGroup.append('g').call(yAxes[0]);
+    var hourAxisGroup = axisGroup.append('g').call(yAxes[0]);
     axisGroup.append('g').call(yAxes[1])
         .attr('transform', 'translate(' + width + ', 0)');
 
     axisGroup.append('g').call(xAxes[0]);
-    axisGroup.append('g').call(xAxes[1])
+    var dateAxisGroup = axisGroup.append('g').call(xAxes[1])
         .attr('transform', 'translate(0, ' + height + ')');
 
     var defs = svg.append('defs');
 
-    defs.append("linearGradient")
-        .attr("id", "line-gradient")
-        .attr("gradientUnits", "userSpaceOnUse")
-        .attr("x1", 0)
-        .attr("y1", 0)
-        .attr("x2", width)
-        .attr("y2", height)
-        .selectAll("stop")
-        .data([
-            { offset: "0%", color: "red" },
-            { offset: "100%", color: "lawngreen" }
-        ])
-        .enter().append("stop")
-        .attr("offset", function (d) { return d.offset; })
-        .attr("stop-color", function (d) { return d.color; });
-
+   
     axisGroup
         .selectAll('line')
         //.style('stroke', colours[Colour.AxisTicks].toString())
-        .style('stroke', 'url(#line-gradient)')
+        //.style('stroke', 'url(#line-gradient)')
         .style('stroke-width', '1px');
 
+
+    setDateLineGradients(defs, dateAxisGroup, colours, date => _.find(days, dl => dl.Date.toDate().getTime() == date.getTime()));
+    setHourLineColors(defs, hourAxisGroup, colours);
 
     svg.append('text')
         .attr('x', margin + titleMargin)
@@ -214,12 +203,94 @@ export function ExportToSvg(days: dl.Daylight[],
     return saveD3ToSvg(d3.select('body'), filepath); 
 }
 
+function setLineGradients(defs: D3.Selection,
+    lines: D3.Selection,
+    getStops: (lineEl: any) => any[],
+    getId: (index: number) => string) {
+
+    lines.selectAll('line')[0]
+        .forEach((lineEl, index: number) => {
+            var line = d3.select(lineEl);
+            var gradientId = getId(index);
+            var stops = getStops(lineEl);
+
+            defs.append("linearGradient")
+                .attr("id", gradientId)
+                .attr("gradientUnits", "userSpaceOnUse")
+                .attr("x1", 0)
+                .attr("y1", 0)
+                .attr("x2", line.attr('x2'))
+                .attr("y2", line.attr('y2'))
+                .selectAll("stop")
+                .data(stops)
+                .enter().append("stop")
+                .attr("offset", function (d) { return d.offset; })
+                .attr("stop-color", function (d) { return d.color; });
+
+            line.style('stroke', 'url(#' + gradientId + ')');
+        });
+}
+
+function setHourLineColors(defs: D3.Selection,
+    lines: D3.Selection,
+    colours: ColourSet) {
+
+    var showFromAm = 4;
+    var showToAm = 10;
+    var showFromPm = 3;
+    var showToPm = 23;
+
+    var interpolateAm = d3.interpolateRgb(colours[Colour.Night], colours[Colour.Day]);
+    var interpolatePm = d3.interpolateRgb(colours[Colour.Day], colours[Colour.Night]);
+
+    lines.selectAll('line')[0]
+        .forEach((lineEl, index: number) => {
+            var color: D3.Color.RGBColor;
+
+            if (index >= showFromAm && index <= showToAm) {
+                var colorPosition = (index - showFromAm) / (showToAm - showFromAm);
+                color = interpolateAm(colorPosition);
+            } else if(index >= showFromPm && index <= showToPm){
+                var colorPosition = (index - showFromPm) / (showToPm - showFromPm);
+                color = interpolatePm(colorPosition);
+            }
+
+                
+            if(color) d3.select(lineEl).style('stroke', color.toString());
+        });
+
+}
+
+function setDateLineGradients(defs: D3.Selection,
+    lines: D3.Selection,
+    colours : ColourSet,
+    getDaylight: (date : Date) => dl.Daylight) {
+
+    var margin = 1; //Show line within +/- this many hours of dawn and dusk
+    var getStops = lineEl => {
+        var daylight = getDaylight(lineEl.__data__);
+        return [
+            { hour: daylight.DuskHour + 1, color: colours[Colour.Night] },
+            { hour: daylight.SunsetHour - 1, color: colours[Colour.Day] },
+            { hour: daylight.SunriseHour + 1, color: colours[Colour.Day] },
+            { hour: daylight.DawnHour - 1, color: colours[Colour.Night] },
+        ].map(oh => {
+            return {
+                offset: ((24 - oh.hour) / 0.24) + '%',
+                color: oh.color.toString()
+            };
+        });
+    };
+
+    setLineGradients(defs, lines, getStops, index => 'date-line-gradient-' + index);
+}
+
 function saveD3ToSvg(selection: D3.Selection, filepath: string): Q.Promise<string> {
 
     var deferred = q.defer<string>();
 
     var html = selection.html();
-    html = html.replace(/lineargradient/, 'linearGradient');
+    html = html.replace(/lineargradient/g, 'linearGradient');
 
     fs.writeFile(filepath, html, error => {
         if (error) deferred.reject(error);
