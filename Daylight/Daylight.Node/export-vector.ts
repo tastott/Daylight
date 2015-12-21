@@ -1,8 +1,11 @@
-﻿import dl = require('./daylight');
+﻿"use strict"
+
+import dl = require('./daylight');
 import q = require('q');
 import fs = require('fs');
 import d3 = require('d3');
 import _ = require('underscore');
+
 
 interface Area {
     Name: string;
@@ -192,7 +195,14 @@ export function ExportToSvg(days: dl.Daylight[],
 
 
     setDateLineGradients(defs, dateAxisGroup, colours, date => _.find(days, dl => dl.Date.toDate().getTime() == date.getTime()));
-    setHourLineColors(defs, hourAxisGroup, colours);
+    setHourLineGradients(defs, 
+        hourAxisGroup, 
+        colours, 
+        (getDaylightHour, hour) => getIntersections(days, getDaylightHour, hour)
+    );
+   
+    
+  //  setHourLineColors(defs, hourAxisGroup, colours);
 
     svg.append('text')
         .attr('x', margin + titleMargin)
@@ -203,6 +213,27 @@ export function ExportToSvg(days: dl.Daylight[],
         
 
     return saveD3ToSvg(d3.select(document.body), filepath); 
+}
+
+function getIntersections(days: dl.Daylight[], getDaylightHour: (day: dl.Daylight) => number, hour: number) :
+    DaylightIntersection[] {
+        
+    let intersections : DaylightIntersection[] = [];
+    let previous: number = null;
+    for(var i = 0; i < days.length; i++){
+        let current = getDaylightHour(days[i]);
+        if(previous != null){
+            if(previous < hour && current >= hour) intersections.push({Up: true, Hour: i});
+            else if(previous > hour && current < hour) intersections.push({Up: false, Hour: i});
+        }
+        previous = current;
+    }
+    return intersections;
+}
+
+interface DaylightIntersection {
+    Up: boolean;
+    Hour: number;
 }
 
 function setLineGradients(defs: D3.Selection,
@@ -261,6 +292,39 @@ function setHourLineColors(defs: D3.Selection,
             if(color) d3.select(lineEl).style('stroke', color.toString());
         });
 
+}
+
+function setHourLineGradients(defs: D3.Selection,
+    lines: D3.Selection,
+    colours: ColourSet,
+    getIntersections: (getDaylightHour: (day: dl.Daylight) => number, hour: number) => DaylightIntersection[]){
+
+    var margin = 20; //Show line within +/- this many days of intersection
+    var getStops = lineEl => {
+        let hour: number = lineEl.__data__;
+        
+        return _.chain([
+            {GetHour: (day: dl.Daylight):number => day.DawnHour, Colour: colours[Colour.Night], Offset: -margin},
+            {GetHour: (day: dl.Daylight):number => day.SunriseHour, Colour: colours[Colour.Day], Offset: margin},
+            {GetHour: (day: dl.Daylight):number => day.SunsetHour, Colour: colours[Colour.Day], Offset: -margin},
+            {GetHour: (day: dl.Daylight):number => day.DuskHour, Colour: colours[Colour.Night], Offset: margin}
+        ])
+        .map(entry => {
+            let intersections = getIntersections(entry.GetHour, hour);
+            return intersections.map(intersection => {
+                return {
+                    offset: ((365 - intersection.Hour + (intersection.Up ? -entry.Offset: entry.Offset)) / 0.365) + '%',
+                    color: entry.Colour.toString()
+                };
+            })
+        })
+        .flatten()
+        .value();
+        
+    };
+
+    setLineGradients(defs, lines, getStops, index => 'hour-line-gradient-' + index);    
+        
 }
 
 function setDateLineGradients(defs: D3.Selection,
