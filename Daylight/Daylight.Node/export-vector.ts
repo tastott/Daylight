@@ -1,4 +1,4 @@
-﻿import dl = require('daylight');
+﻿import dl = require('./daylight');
 import q = require('q');
 import fs = require('fs');
 import d3 = require('d3');
@@ -86,7 +86,9 @@ export function ExportToSvg(days: dl.Daylight[],
     colours[Colour.Twilight] = d3.interpolateRgb(colours[Colour.Night], colours[Colour.Day])(0.5);
     colours[Colour.AxisTicks] = colours[Colour.Day];
 
-    var svg = d3.select('body')
+    var document = require('jsdom').jsdom();
+    
+    var svg = d3.select(document.body)
         .append('svg')
         .attr('width', width + (2 * margin))
         .attr('height', height + (2 * margin));
@@ -200,7 +202,7 @@ export function ExportToSvg(days: dl.Daylight[],
         .text(title);
         
 
-    return saveD3ToSvg(d3.select('body'), filepath); 
+    return saveD3ToSvg(d3.select(document.body), filepath); 
 }
 
 function setLineGradients(defs: D3.Selection,

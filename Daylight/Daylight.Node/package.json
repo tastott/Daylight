@@ -3,13 +3,17 @@
   "version": "0.0.0",
   "description": "Daylight.Node",
   "main": "app.js",
+  "scripts": {
+    "build": "tsc -p ./"
+  },
   "author": {
     "name": "Tim Stott",
     "email": ""
   },
   "dependencies": {
     "csv-stringify": "0.0.5",
-    "d3": "^3.5.3",
+    "d3": "^3.5.12",
+    "jsdom": "^7.2.1",
     "moment": "^2.9.0",
     "open": "0.0.5",
     "q": "^1.1.2",

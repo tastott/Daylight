@@ -1,4 +1,4 @@
-﻿import dl = require('daylight');
+﻿import dl = require('./daylight');
 var lwip = require('lwip');
 import q = require('q');
 import _ = require('underscore');

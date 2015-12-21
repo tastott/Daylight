@@ -1,6 +1,6 @@
 ﻿import fs = require('fs');
 var Csv = require('csv-stringify');
-import dl = require('daylight');
+import dl = require('./daylight');
 import q = require('q');
 
 export function ExportToCsv(days: dl.Daylight[], csvFilePath: string): q.Promise<string> {
