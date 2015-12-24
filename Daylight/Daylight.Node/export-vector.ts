@@ -1,6 +1,6 @@
 ﻿"use strict"
 
-import dl = require('./daylight');
+import {Transition, Daylight} from './daylight';
 import q = require('q');
 import fs = require('fs');
 import d3 = require('d3');
@@ -9,8 +9,8 @@ import _ = require('underscore');
 
 interface Area {
     Name: string;
-    Bottom: (daylight: dl.Daylight) => number;
-    Top: (daylight: dl.Daylight) => number;
+    Bottom: (daylight: Daylight) => number;
+    Top: (daylight: Daylight) => number;
     Colour: any
 }
 
@@ -70,7 +70,7 @@ export function TestSvg(filepath: string): Q.Promise<string> {
     return deferred.promise;
 }
 
-export function ExportToSvg(days: dl.Daylight[],
+export function ExportToSvg(days: Daylight[],
     width: number,
     height: number,
     title : string,
@@ -152,18 +152,18 @@ export function ExportToSvg(days: dl.Daylight[],
         .style("fill", colours[Colour.Day]);
 
     var areas: Area[] = [
-        { Name: 'NightAm', Bottom: d => 0, Top: d => d.DawnHour, Colour: colours[Colour.Night] },
-        { Name: 'Dawn', Bottom: d => d.DawnHour, Top: d => d.SunriseHour, Colour: colours[Colour.Twilight] },
-        { Name: 'Dusk', Bottom: d => d.SunsetHour, Top: d => d.DuskHour, Colour: colours[Colour.Twilight] },
-        { Name: 'NightPm', Bottom: d => d.DuskHour, Top: d => 24, Colour: colours[Colour.Night] },
+        { Name: 'NightAm', Bottom: d => 0, Top: d => d.Transitions[Transition.Dawn], Colour: colours[Colour.Night] },
+        { Name: 'Dawn', Bottom: d => d.Transitions[Transition.Dawn], Top: d => d.Transitions[Transition.Sunrise], Colour: colours[Colour.Twilight] },
+        { Name: 'Dusk', Bottom: d => d.Transitions[Transition.Sunset], Top: d => d.Transitions[Transition.Dusk], Colour: colours[Colour.Twilight] },
+        { Name: 'NightPm', Bottom: d => d.Transitions[Transition.Dusk], Top: d => 24, Colour: colours[Colour.Night] },
     ];
 
     areas.forEach(area => {
         group.append("path")
             .attr("d", d3.svg.area()
-                .x((d: dl.Daylight) => x(d.Date.toDate()))
-                .y0((d: dl.Daylight) => y(area.Bottom(d)))
-                .y1((d: dl.Daylight) => y(area.Top(d)))
+                .x((d: Daylight) => x(d.Date.toDate()))
+                .y0((d: Daylight) => y(area.Bottom(d)))
+                .y1((d: Daylight) => y(area.Top(d)))
                 .interpolate('linear')(days)
             )
             .attr("fill", area.Colour);
@@ -198,7 +198,7 @@ export function ExportToSvg(days: dl.Daylight[],
     setHourLineGradients(defs, 
         hourAxisGroup, 
         colours, 
-        (getDaylightHour, hour) => getIntersections(days, getDaylightHour, hour)
+        days
     );
    
     
@@ -215,7 +215,7 @@ export function ExportToSvg(days: dl.Daylight[],
     return saveD3ToSvg(d3.select(document.body), filepath); 
 }
 
-function getIntersections(days: dl.Daylight[], getDaylightHour: (day: dl.Daylight) => number, hour: number) :
+function getIntersections(days: Daylight[], getDaylightHour: (day: Daylight) => number, hour: number) :
     DaylightIntersection[] {
         
     let intersections : DaylightIntersection[] = [];
@@ -223,17 +223,30 @@ function getIntersections(days: dl.Daylight[], getDaylightHour: (day: dl.Dayligh
     for(var i = 0; i < days.length; i++){
         let current = getDaylightHour(days[i]);
         if(previous != null){
-            if(previous < hour && current >= hour) intersections.push({Up: true, Hour: i});
-            else if(previous > hour && current < hour) intersections.push({Up: false, Hour: i});
+            if(previous < hour && current >= hour) intersections.push({Up: true, Day: i});
+            else if(previous > hour && current < hour) intersections.push({Up: false, Day: i});
         }
         previous = current;
     }
     return intersections;
 }
 
+function getAllIntersections(days: Daylight[], hour: number): DaylightIntersection[] {
+    return _.chain([
+        Transition.Dawn,
+        Transition.Sunrise,
+        Transition.Sunset,
+        Transition.Dusk
+    ])
+    .map(t => getIntersections(days, day => day.Transitions[t], hour))
+    .flatten()
+    .sortBy(i => i.Day)
+    .value();
+}
+
 interface DaylightIntersection {
     Up: boolean;
-    Hour: number;
+    Day: number;
 }
 
 function setLineGradients(defs: D3.Selection,
@@ -297,30 +310,15 @@ function setHourLineColors(defs: D3.Selection,
 function setHourLineGradients(defs: D3.Selection,
     lines: D3.Selection,
     colours: ColourSet,
-    getIntersections: (getDaylightHour: (day: dl.Daylight) => number, hour: number) => DaylightIntersection[]){
+    days: Daylight[]){
 
     var margin = 20; //Show line within +/- this many days of intersection
     var getStops = lineEl => {
         let hour: number = lineEl.__data__;
         
-        return _.chain([
-            {GetHour: (day: dl.Daylight):number => day.DawnHour, Colour: colours[Colour.Night], Offset: -margin},
-            {GetHour: (day: dl.Daylight):number => day.SunriseHour, Colour: colours[Colour.Day], Offset: margin},
-            {GetHour: (day: dl.Daylight):number => day.SunsetHour, Colour: colours[Colour.Day], Offset: -margin},
-            {GetHour: (day: dl.Daylight):number => day.DuskHour, Colour: colours[Colour.Night], Offset: margin}
-        ])
-        .map(entry => {
-            let intersections = getIntersections(entry.GetHour, hour);
-            return intersections.map(intersection => {
-                return {
-                    offset: ((365 - intersection.Hour + (intersection.Up ? -entry.Offset: entry.Offset)) / 0.365) + '%',
-                    color: entry.Colour.toString()
-                };
-            })
-        })
-        .flatten()
-        .value();
-        
+        let intersections = getAllIntersections(days, hour);
+        if(intersections.length) console.log(intersections.map(i => i.Day));
+        return [];
     };
 
     setLineGradients(defs, lines, getStops, index => 'hour-line-gradient-' + index);    
@@ -330,16 +328,16 @@ function setHourLineGradients(defs: D3.Selection,
 function setDateLineGradients(defs: D3.Selection,
     lines: D3.Selection,
     colours : ColourSet,
-    getDaylight: (date : Date) => dl.Daylight) {
+    getDaylight: (date : Date) => Daylight) {
 
     var margin = 1; //Show line within +/- this many hours of dawn and dusk
     var getStops = lineEl => {
         var daylight = getDaylight(lineEl.__data__);
         return [
-            { hour: daylight.DuskHour + 1, color: colours[Colour.Night] },
-            { hour: daylight.SunsetHour - 1, color: colours[Colour.Day] },
-            { hour: daylight.SunriseHour + 1, color: colours[Colour.Day] },
-            { hour: daylight.DawnHour - 1, color: colours[Colour.Night] },
+            { hour: daylight.Transitions[Transition.Dusk] + 1, color: colours[Colour.Night] },
+            { hour: daylight.Transitions[Transition.Sunset] - 1, color: colours[Colour.Day] },
+            { hour: daylight.Transitions[Transition.Sunrise] + 1, color: colours[Colour.Day] },
+            { hour: daylight.Transitions[Transition.Dawn] - 1, color: colours[Colour.Night] },
         ].map(oh => {
             return {
                 offset: ((24 - oh.hour) / 0.24) + '%',
