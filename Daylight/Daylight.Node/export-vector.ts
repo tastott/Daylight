@@ -1,6 +1,6 @@
 ﻿"use strict"
 
-import {Transition, Daylight} from './daylight';
+import {Transition, Transitions, Daylight, DaylightState} from './daylight';
 import q = require('q');
 import fs = require('fs');
 import d3 = require('d3');
@@ -152,10 +152,10 @@ export function ExportToSvg(days: Daylight[],
         .style("fill", colours[Colour.Day]);
 
     var areas: Area[] = [
-        { Name: 'NightAm', Bottom: d => 0, Top: d => d.Transitions[Transition.Dawn], Colour: colours[Colour.Night] },
-        { Name: 'Dawn', Bottom: d => d.Transitions[Transition.Dawn], Top: d => d.Transitions[Transition.Sunrise], Colour: colours[Colour.Twilight] },
-        { Name: 'Dusk', Bottom: d => d.Transitions[Transition.Sunset], Top: d => d.Transitions[Transition.Dusk], Colour: colours[Colour.Twilight] },
-        { Name: 'NightPm', Bottom: d => d.Transitions[Transition.Dusk], Top: d => 24, Colour: colours[Colour.Night] },
+        { Name: 'NightAm', Bottom: d => 0, Top: d => d.Transitions[Transitions.Dawn.Name], Colour: colours[Colour.Night] },
+        { Name: 'Dawn', Bottom: d => d.Transitions[Transitions.Dawn.Name], Top: d => d.Transitions[Transitions.Sunrise.Name], Colour: colours[Colour.Twilight] },
+        { Name: 'Dusk', Bottom: d => d.Transitions[Transitions.Sunset.Name], Top: d => d.Transitions[Transitions.Dusk.Name], Colour: colours[Colour.Twilight] },
+        { Name: 'NightPm', Bottom: d => d.Transitions[Transitions.Dusk.Name], Top: d => 24, Colour: colours[Colour.Night] },
     ];
 
     areas.forEach(area => {
@@ -215,37 +215,37 @@ export function ExportToSvg(days: Daylight[],
     return saveD3ToSvg(d3.select(document.body), filepath); 
 }
 
-function getIntersections(days: Daylight[], getDaylightHour: (day: Daylight) => number, hour: number) :
-    DaylightIntersection[] {
+function *getIntersections(days: Daylight[], transition: Transition, hour: number){
         
-    let intersections : DaylightIntersection[] = [];
     let previous: number = null;
     for(var i = 0; i < days.length; i++){
-        let current = getDaylightHour(days[i]);
+        let current = days[i].Transitions[transition.Name];
         if(previous != null){
-            if(previous < hour && current >= hour) intersections.push({Up: true, Day: i});
-            else if(previous > hour && current < hour) intersections.push({Up: false, Day: i});
+            if(previous < hour && current >= hour) yield i;
+            else if(previous > hour && current < hour) yield i;
         }
         previous = current;
     }
-    return intersections;
 }
 
-function getAllIntersections(days: Daylight[], hour: number): DaylightIntersection[] {
-    return _.chain([
-        Transition.Dawn,
-        Transition.Sunrise,
-        Transition.Sunset,
-        Transition.Dusk
-    ])
-    .map(t => getIntersections(days, day => day.Transitions[t], hour))
-    .flatten()
-    .sortBy(i => i.Day)
-    .value();
+function *getAllIntersections(days: Daylight[], hour: number){
+    for(let t of [
+        Transitions.Dawn,
+        Transitions.Sunrise,
+        Transitions.Sunset,
+        Transitions.Dusk
+    ]){
+        for(let i of getIntersections(days, t, hour)){
+            yield {
+                Day: i,
+                Transition: t
+            }
+        }   
+    }
 }
 
 interface DaylightIntersection {
-    Up: boolean;
+    Transition: Transition;
     Day: number;
 }
 
@@ -307,18 +307,199 @@ function setHourLineColors(defs: D3.Selection,
 
 }
 
+function getStateAtHour(day: Daylight, hour:number): DaylightState {
+    if(hour < day.Transitions[Transitions.Dawn.Name]) return DaylightState.Night;
+    else if(hour < day.Transitions[Transitions.Sunrise.Name]) return DaylightState.Twilight;
+    else if(hour < day.Transitions[Transitions.Sunset.Name]) return DaylightState.Day;
+    else if(hour < day.Transitions[Transitions.Dusk.Name]) return DaylightState.Twilight;
+    else return DaylightState.Night;
+}
+
+function *getTwilights(sequence: IterableIterator<{Start: number; End: number; State: DaylightState}>, 
+    margin: number,
+    end: number) {
+    let dict = new Map<number,DaylightState>();
+    
+    for(let item of sequence){
+        if(item.State == DaylightState.Twilight){
+            _.range(Math.max(0, item.Start-margin), Math.min(item.End+margin, end))
+                .forEach(day => {
+                    dict.set(day, item.State)
+                })
+        }
+        else {
+            _.range(item.Start, item.End)
+                .forEach(day => {
+                    if(!dict.has(day)) dict.set(day, item.State)
+                })
+        }
+    }
+    
+    let previous = dict.get(0);
+    let start = 0;
+    let beforeTwilight: DaylightState;
+    
+    for(let day = 1; day <= end; day++){
+        let current = dict.get(day);
+        if(previous != current){
+            if(current == DaylightState.Twilight){
+                beforeTwilight = previous;
+                start = day;
+            }
+            else if(previous == DaylightState.Twilight){
+                yield {
+                    Start: start,
+                    End: day-1,
+                    Before: beforeTwilight,
+                    After: current
+                }
+            }
+            previous = current;
+        }
+    }
+    
+    if(previous == DaylightState.Twilight){
+        yield {
+            Start: start,
+            End: end,
+            Before: beforeTwilight,
+            After: null
+        }
+    }
+}
+
+function *getStateSequence(days: Daylight[], hour: number) {
+    let state = getStateAtHour(days[0], hour);
+    let start = 0;
+    
+    let intersections = Array.from(getAllIntersections(days, hour))
+        .sort((a,b) => a.Day - b.Day);
+        
+    for(let x = 0; x < intersections.length;x++){
+        let i = intersections[x];    
+        let newState: DaylightState;
+        if(i.Transition.From == state) {
+            newState = i.Transition.To;
+        }
+        else if(i.Transition.To == state){
+            newState = i.Transition.From;
+        }
+        else {
+            //Fudge alert: this happens if intersections with more than one transition coincide (e.g. because of a "jump")
+            //and the transitions are in the wrong orders#.
+            //To account for this, we'll try to find a subsequent intersection at the same time and swap it with this one
+            if(intersections[x+1] && intersections[x+1].Day == i.Day
+                && (intersections[x+1].Transition.From == state
+                 || intersections[x+1].Transition.To == state)){
+                     let temp = intersections[x];
+                     intersections[x] = intersections[x+1];
+                     intersections[x+1] = temp;
+                     --x;
+                     continue;
+                 }
+                 else throw new Error(`Invalid transition for hour ${hour} at day ${i.Day}. Current state: ${DaylightState[state]}. Transition: ${i.Transition.Name}`);
+        }
+        
+        yield {
+            Start: start,
+            End: i.Day - 1,
+            State: state
+        };
+        
+        state = newState;
+        start = i.Day;
+    }
+    
+    yield {
+        Start: start,
+        End: days.length -1,
+        State: state
+    }
+    
+    
+}
+// 
+// function *getTwilights(days: Daylight[], hour: number) {
+//     let start: number;
+//     let fromDay: boolean;
+//     let previous: DaylightState = null;
+//     
+//     for(let s of getStateSequence(days, hour)){
+//         if(s.State == DaylightState.Twilight){
+//             start = s.Day;
+//             if(previous === null) {
+//                 fromDay = false;
+//             }
+//             else if(previous === DaylightState.Night){
+//                 fromDay = false;
+//             }
+//             else
+//         }
+//     }
+// }
+
 function setHourLineGradients(defs: D3.Selection,
     lines: D3.Selection,
     colours: ColourSet,
     days: Daylight[]){
 
-    var margin = 20; //Show line within +/- this many days of intersection
+    var margin = 30; //Show line within +/- this many days of intersection
+    let dayToOffset = (day: number) => (day / 3.65).toFixed(0) + '%';
+    
     var getStops = lineEl => {
         let hour: number = lineEl.__data__;
+        let stops = [];
+        let sequence = getStateSequence(days, hour);
+       // console.log(Array.from(sequence));
+        let twilights = getTwilights(sequence, margin, days.length-1);
+        //console.log(Array.from(twilights))
+        for(let t of twilights){
+            if(t.Before === t.After){
+                let endsColour = t.Before === DaylightState.Day
+                    ? colours[Colour.Day]
+                    : colours[Colour.Night];
+                    
+                let midColour = t.Before === DaylightState.Day
+                    ? colours[Colour.Night]
+                    : colours[Colour.Day];
+                    
+                stops.push({
+                    offset: dayToOffset(t.Start),
+                    color: endsColour.toString()
+                })
+                
+                stops.push({
+                    offset: dayToOffset(((t.End - t.Start) / 2) + t.Start),
+                    color: midColour.toString()
+                })
+                
+                stops.push({
+                    offset: dayToOffset(t.End),
+                    color: endsColour.toString()
+                })
+            }
+            else {
+                let startColour = t.Before === DaylightState.Day
+                    ? colours[Colour.Day]
+                    : colours[Colour.Night];
+                    
+                let endColour = t.After === DaylightState.Day
+                    ? colours[Colour.Day]
+                    : colours[Colour.Night];
+                    
+                stops.push({
+                    offset: dayToOffset(t.Start),
+                    color: startColour.toString()
+                })
+                stops.push({
+                    offset: dayToOffset(t.End),
+                    color: endColour.toString()
+                })
+            }
+        }
         
-        let intersections = getAllIntersections(days, hour);
-        if(intersections.length) console.log(intersections.map(i => i.Day));
-        return [];
+        //console.log(stops);
+        return stops;
     };
 
     setLineGradients(defs, lines, getStops, index => 'hour-line-gradient-' + index);    
@@ -330,14 +511,14 @@ function setDateLineGradients(defs: D3.Selection,
     colours : ColourSet,
     getDaylight: (date : Date) => Daylight) {
 
-    var margin = 1; //Show line within +/- this many hours of dawn and dusk
+    var margin = 1.5; //Show line within +/- this many hours of dawn and dusk
     var getStops = lineEl => {
         var daylight = getDaylight(lineEl.__data__);
         return [
-            { hour: daylight.Transitions[Transition.Dusk] + 1, color: colours[Colour.Night] },
-            { hour: daylight.Transitions[Transition.Sunset] - 1, color: colours[Colour.Day] },
-            { hour: daylight.Transitions[Transition.Sunrise] + 1, color: colours[Colour.Day] },
-            { hour: daylight.Transitions[Transition.Dawn] - 1, color: colours[Colour.Night] },
+            { hour: daylight.Transitions[Transitions.Dusk.Name] + 1, color: colours[Colour.Night] },
+            { hour: daylight.Transitions[Transitions.Sunset.Name] - 1, color: colours[Colour.Day] },
+            { hour: daylight.Transitions[Transitions.Sunrise.Name] + 1, color: colours[Colour.Day] },
+            { hour: daylight.Transitions[Transitions.Dawn.Name] - 1, color: colours[Colour.Night] },
         ].map(oh => {
             return {
                 offset: ((24 - oh.hour) / 0.24) + '%',

@@ -3,7 +3,7 @@ import _ = require('underscore');
 import moment = require('moment');
 import exCsv = require('./export-csv');
 import exSvg = require('./export-vector');
-import {Transition, Daylight} from './daylight';
+import {Transitions, Daylight} from './daylight';
 import open = require('open');
 
 function hoursContinuous(date: Date): number {
@@ -14,7 +14,7 @@ function hoursContinuous(date: Date): number {
 var latitude = 51.606;
 var longitude = -1.241;
 
-var startDate = moment({ year: 2014, month: 11, day: 21 });
+var startDate = moment({ year: 2015, month: 11, day: 21 });
 var dayCount = 365;
 
 var csvFilePath = 'daylight.csv';
@@ -30,10 +30,10 @@ var days: Daylight[] = _.range(dayCount - 1)
             SunsetDate: moment(times.sunset),
             DuskDate: moment(times.dusk),
             Transitions: <any>{
-                [Transition.Dawn]: hoursContinuous(times.dawn),
-                [Transition.Sunrise]: hoursContinuous(times.sunrise),
-                [Transition.Sunset]: hoursContinuous(times.sunset),
-                [Transition.Dusk]: hoursContinuous(times.dusk)
+                [Transitions.Dawn.Name]: hoursContinuous(times.dawn),
+                [Transitions.Sunrise.Name]: hoursContinuous(times.sunrise),
+                [Transitions.Sunset.Name]: hoursContinuous(times.sunset),
+                [Transitions.Dusk.Name]: hoursContinuous(times.dusk)
             }
         };
     });
