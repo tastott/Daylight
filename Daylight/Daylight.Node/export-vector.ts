@@ -443,7 +443,7 @@ function setHourLineGradients(defs: D3.Selection,
     colours: ColourSet,
     days: Daylight[]){
 
-    var margin = 30; //Show line within +/- this many days of intersection
+    var margin = 25; //Show line within +/- this many days of intersection
     let dayToOffset = (day: number) => (day / 3.65).toFixed(0) + '%';
     
     var getStops = lineEl => {

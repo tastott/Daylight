@@ -1,4 +1,6 @@
-﻿var SunCalc = require('suncalc');
+﻿"use strict"
+
+var SunCalc = require('suncalc');
 import _ = require('underscore');
 import moment = require('moment');
 import exCsv = require('./export-csv');
@@ -38,8 +40,8 @@ var days: Daylight[] = _.range(dayCount - 1)
         };
     });
 
-
-exSvg.ExportToSvg(days, 1024, 768, '51.606°N, 1.241°W', 'daylight.svg')
+let title = `${Math.abs(latitude).toFixed(3)}°${latitude < 0 ? 'S' : 'N'}, ${Math.abs(longitude).toFixed(3)}°${longitude < 0 ? 'W' : 'E'}`;
+exSvg.ExportToSvg(days, 1024, 768, title, 'daylight.svg')
 //exSvg.TestSvg('test.svg')
     .then(imagePath => {
         open(imagePath);
