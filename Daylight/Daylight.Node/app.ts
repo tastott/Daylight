@@ -16,8 +16,13 @@ function hoursContinuous(date: Date): number {
 var latitude = 51.606;
 var longitude = -1.241;
 
-var startDate = moment({ year: 2015, month: 11, day: 21 });
-var dayCount = 365;
+//var startDate = moment({ year: 2015, month: 9, day: 25 })
+//var endDate = moment({year: 2016, month:2, day: 26});
+
+var startDate = moment({ year: 2015, month: 11, day: 21 })
+var endDate = moment({year: 2016, month:11, day: 20});
+var dayCount = endDate.diff(startDate, 'day')+1;
+
 
 var csvFilePath = 'daylight.csv';
 
@@ -41,7 +46,7 @@ var days: Daylight[] = _.range(dayCount - 1)
     });
 
 let title = `${Math.abs(latitude).toFixed(3)}°${latitude < 0 ? 'S' : 'N'}, ${Math.abs(longitude).toFixed(3)}°${longitude < 0 ? 'W' : 'E'}`;
-exSvg.ExportToSvg(days, 1024, 768, title, 'daylight.svg')
+exSvg.ExportToSvg(days, 1189*10, 841*10, title, 'daylight.svg')
 //exSvg.TestSvg('test.svg')
     .then(imagePath => {
         open(imagePath);

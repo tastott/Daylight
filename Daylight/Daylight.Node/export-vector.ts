@@ -76,11 +76,16 @@ export function ExportToSvg(days: Daylight[],
     title : string,
     filepath: string): Q.Promise<string> {
 
-    var margin = 32;
-    var axisLabelPaddingX = 16;
-    var axisLabelPaddingY = 4;
-    var titleMargin = 16;
-    var titleSize = 64;
+    var baseWidth = 1024;
+    var baseHeight = 768;
+
+    var margin = 32 * (width / baseHeight);
+    var axisLabelPaddingX = 16 * (height / baseHeight);
+    var axisLabelPaddingY = 4 * (width / baseWidth);
+    var titleMargin = 16 * (height/baseHeight);
+    var titleSize = 64 * (width/baseWidth);
+    var lineWidth = Math.floor(width / baseWidth);
+    var labelSize = 14 * Math.floor(width/baseWidth);
 
     var colours: ColourSet = {};
     colours[Colour.Night] = d3.rgb('#0B0B3B');
@@ -191,7 +196,9 @@ export function ExportToSvg(days: Daylight[],
         .selectAll('line')
         //.style('stroke', colours[Colour.AxisTicks].toString())
         //.style('stroke', 'url(#line-gradient)')
-        .style('stroke-width', '1px');
+        .style('stroke-width', `${lineWidth}px`)
+     axisGroup
+        .style('font-size', `${labelSize}px`)
 
 
     setDateLineGradients(defs, dateAxisGroup, colours, date => _.find(days, dl => dl.Date.toDate().getTime() == date.getTime()));
