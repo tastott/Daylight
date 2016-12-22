@@ -7,6 +7,9 @@ import exCsv = require('./export-csv');
 import exSvg = require('./export-vector');
 import {Transitions, Daylight} from './daylight';
 import open = require('open');
+import yargs = require("yargs");
+
+//const argv = yargs.
 
 function hoursContinuous(date: Date): number {
     var mom = moment(date);
