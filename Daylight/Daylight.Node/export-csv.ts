@@ -7,7 +7,15 @@ export function ExportToCsv(days: dl.Daylight[], csvFilePath: string): q.Promise
 
     var deferred = q.defer<string>();
 
-    Csv(days, { header: true, rowDelimiter: 'windows' }, (err, value) => {
+    const data = days.map(day => ({
+        Date: day.Date.format("YYYY-MM-DD"),
+        CivilSunrise: day.DawnDate.format("HH:mm:ss"),
+        Sunrise: day.SunriseDate.format("HH:mm:ss"),
+        Sunset: day.SunsetDate.format("HH:mm:ss"),
+        CivilSunset: day.DuskDate.format("HH:mm:ss")
+    }));
+
+    Csv(data, { header: true, rowDelimiter: 'windows' }, (err, value) => {
         if (err) deferred.reject(err);
         else {
             fs.writeFile(csvFilePath, value, err => {
