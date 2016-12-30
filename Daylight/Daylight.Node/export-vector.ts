@@ -86,44 +86,47 @@ export function ExportToSvg(days: Daylight[],
     title : string,
     filepath: string): Q.Promise<string> {
 
-    var baseWidth = 1024;
-    var baseHeight = 768;
+    const baseWidth = 1024;
+    const baseHeight = 768;
 
-    var margin = 32 * (width / baseHeight);
-    var axisLabelPaddingX = 16 * (height / baseHeight);
-    var axisLabelPaddingY = 4 * (width / baseWidth);
-    var titleMargin = 16 * (height/baseHeight);
-    var titleSize = 64 * (width/baseWidth);
-    var lineWidth = Math.floor(width / baseWidth);
-    var labelSize = 14 * Math.floor(width/baseWidth);
+    const margin = 32 * (width / baseHeight);
+    const _innerWidth = Math.floor(width - (margin * 2));
+    const _innerHeight = Math.floor(height - (margin * 2));
 
-    var colours: ColourSet = {};
+    const axisLabelPaddingX = 16 * (height / baseHeight);
+    const axisLabelPaddingY = 4 * (width / baseWidth);
+    const titleMargin = 16 * (height/baseHeight);
+    const titleSize = 64 * (width/baseWidth);
+    const lineWidth = Math.max(1, Math.floor(width / baseWidth));
+    const labelSize = 14 * Math.max(1, Math.floor(width/baseWidth));
+
+    const colours: ColourSet = {};
     colours[Colour.Night] = d3.rgb('#0B0B3B');
     colours[Colour.Day] = d3.rgb('#F4FA58');
     colours[Colour.Title] = colours[Colour.Day];
     colours[Colour.Twilight] = d3.interpolateRgb(colours[Colour.Night], colours[Colour.Day])(0.5);
     colours[Colour.AxisTicks] = colours[Colour.Day];
 
-    var document = require('jsdom').jsdom();
+    const document = require('jsdom').jsdom();
     
-    var svg = d3.select(document.body)
+    const svg = d3.select(document.body)
         .append('svg')
-        .attr('width', width + (2 * margin))
-        .attr('height', height + (2 * margin));
+        .attr('width', _innerWidth + (2 * margin))
+        .attr('height',_innerHeight + (2 * margin));
 
-    var x = d3.time.scale()
+    const x = d3.time.scale()
         .domain([days[0].Date.toDate(), days[days.length - 1].Date.toDate()])
-        .range([0, width]);
+        .range([0, _innerWidth]);
 
-    var y = d3.scale.linear()
+    const y = d3.scale.linear()
         .domain([0, 24])
-        .range([0, height]);
+        .range([0, _innerHeight]);
 
 
-    var yAxes = [
+    const yAxes = [
         d3.svg.axis()
             .orient('left')
-            .tickSize(-width, 0),
+            .tickSize(-_innerWidth, 0),
         d3.svg.axis()
             .orient('right')
             .tickSize(0)
@@ -139,14 +142,14 @@ export function ExportToSvg(days: Daylight[],
             .tickPadding(axisLabelPaddingY)
     );
 
-    var xAxes = [
+    const xAxes = [
         d3.svg.axis()
             .orient('top')
             .tickSize(0)
             .tickPadding(axisLabelPaddingY),
         d3.svg.axis()
             .orient('bottom')
-            .tickSize(-height, 0)
+            .tickSize(-_innerHeight, 0)
             .tickPadding(axisLabelPaddingX)
     ];
 
@@ -157,16 +160,16 @@ export function ExportToSvg(days: Daylight[],
     );
         
 
-    var group = svg.append("g")
+    const group = svg.append("g")
         .attr('transform', 'translate(' + margin + ',' + margin + ')');
 
     //Background
-    var background = group.append("rect")
-        .attr("width", width)
-        .attr("height", height)
+    const background = group.append("rect")
+        .attr("width", _innerWidth)
+        .attr("height", _innerHeight)
         .style("fill", colours[Colour.Day]);
 
-    var areas: Area[] = [
+    const areas: Area[] = [
         { Name: 'NightAm', Bottom: d => 0, Top: d => d.Transitions[Transitions.Dawn.Name], Colour: colours[Colour.Night] },
         { Name: 'Dawn', Bottom: d => d.Transitions[Transitions.Dawn.Name], Top: d => d.Transitions[Transitions.Sunrise.Name], Colour: colours[Colour.Twilight] },
         { Name: 'Dusk', Bottom: d => d.Transitions[Transitions.Sunset.Name], Top: d => d.Transitions[Transitions.Dusk.Name], Colour: colours[Colour.Twilight] },
@@ -187,19 +190,19 @@ export function ExportToSvg(days: Daylight[],
 
 
 
-    var axisGroup = svg.append("g")
+    const axisGroup = svg.append("g")
         .attr('transform', 'translate(' + margin + ',' + margin + ')');
 
 
-    var hourAxisGroup = axisGroup.append('g').call(yAxes[0]);
+    const hourAxisGroup = axisGroup.append('g').call(yAxes[0]);
     axisGroup.append('g').call(yAxes[1])
-        .attr('transform', 'translate(' + width + ', 0)');
+        .attr('transform', 'translate(' + _innerWidth + ', 0)');
 
     axisGroup.append('g').call(xAxes[0]);
-    var dateAxisGroup = axisGroup.append('g').call(xAxes[1])
-        .attr('transform', 'translate(0, ' + height + ')');
+    const dateAxisGroup = axisGroup.append('g').call(xAxes[1])
+        .attr('transform', 'translate(0, ' + _innerHeight + ')');
 
-    var defs = svg.append('defs');
+    const defs = svg.append('defs');
 
    
     axisGroup
@@ -239,7 +242,7 @@ export function ExportToSvg(days: Daylight[],
 function *getIntersections(days: Daylight[], transition: Transition, hour: number){
         
     let previous: number = null;
-    for(var i = 0; i < days.length; i++){
+    for(let i = 0; i < days.length; i++){
         let current = days[i].Transitions[transition.Name];
         if(previous != null){
             if(previous < hour && current >= hour) yield i;

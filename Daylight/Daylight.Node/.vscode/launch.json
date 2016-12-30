@@ -20,7 +20,7 @@
 			// "args": ["csv", "--lat", "51.4816", "--lng", "-3.1791", "--out", "data.csv"],
 
 			// Didcot svg
-			"args": ["vector", "--lat", "51.606", "--lng", "-1.241", "--out", "didcot-2016.svg"],
+			"args": ["vector", "--lat", "51.606", "--lng", "-1.241", "--width", "1024", "--height", "683", "--out", "didcot-2016.svg"],
 
 			// Workspace relative or absolute path to the working directory of the program being debugged. Default is the current workspace.
 		//	"cwd": ".",
