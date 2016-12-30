@@ -70,6 +70,16 @@ export function TestSvg(filepath: string): Q.Promise<string> {
     return deferred.promise;
 }
 
+export function ExportToSvgSafe(days: Daylight[],
+    width: number,
+    height: number,
+    title : string,
+    filepath: string): Q.Promise<string> {
+
+    return Q(true)
+        .then(() => ExportToSvg(days, width, height, title, filepath));
+}
+
 export function ExportToSvg(days: Daylight[],
     width: number,
     height: number,
@@ -201,7 +211,11 @@ export function ExportToSvg(days: Daylight[],
         .style('font-size', `${labelSize}px`)
 
 
-    setDateLineGradients(defs, dateAxisGroup, colours, date => _.find(days, dl => dl.Date.toDate().getTime() == date.getTime()));
+    const daylightByDate = _.indexBy(days, day => day.Date.valueOf());
+
+    setDateLineGradients(defs, dateAxisGroup, colours, date => {
+        return daylightByDate[date.valueOf()]
+    });
     setHourLineGradients(defs, 
         hourAxisGroup, 
         colours, 

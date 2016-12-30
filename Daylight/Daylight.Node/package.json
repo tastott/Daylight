@@ -13,7 +13,7 @@
   "dependencies": {
     "csv-stringify": "0.0.5",
     "d3": "^3.5.17",
-    "jsdom": "^7.2.1",
+    "jsdom": "^7.2.2",
     "moment": "^2.9.0",
     "open": "0.0.5",
     "q": "^1.1.2",

@@ -9,10 +9,9 @@ import {Transitions, Daylight} from './daylight';
 import open = require('open');
 import yargs = require("yargs");
 
-const argv = yargs
-    .command("csv", "Create a csv file", 
-        csvYargs => csvYargs
-            .option("lat", {
+function WithDaylightOptions(args: yargs.Yargs): yargs.Yargs {
+    return args
+        .option("lat", {
                 alias: "latitude",
                 type: "number",
                 required: true
@@ -31,26 +30,55 @@ const argv = yargs
                 alias: "toDate",
                 type: "string",
                 desc: "Last date for which to output daylight data in YYYYMMDD format. Defaults to one year from From Date."
-            })
-            .option("out", {
+            });
+}
+
+function ParseDaylightParams(argv: yargs.Argv): DaylightParameters {
+    const startDate = argv["from"]
+        ? moment(argv["from"], "YYYYMMDD")
+        : moment(); //today
+    const endDate = argv["to"]
+        ? moment(argv["to"], "YYYYMMDD")
+        : startDate.clone().add({years: 1, days: -1});
+
+    return {
+        latitude: argv["lat"], 
+        longitude: argv["lng"], 
+        startDate: startDate, 
+        endDate: endDate
+    };
+}
+
+const argv = yargs
+    .command("csv", "Create a csv file", 
+        csvYargs => WithDaylightOptions(csvYargs)
+             .option("out", {
                 alias: "output",
                 required: true
             }),
         csvArgv => {
-            const startDate = csvArgv["from"]
-                ? moment(csvArgv["from"], "YYYYMMDD")
-                : moment(); //today
-            const endDate = csvArgv["to"]
-                ? moment(csvArgv["to"], "YYYYMMDD")
-                : startDate.clone().add({years: 1, days: -1});
-
-            const daylightParams = {
-                latitude: csvArgv["lat"], 
-                longitude: csvArgv["lng"], 
-                startDate: startDate, 
-                endDate: endDate
-            }
+            const daylightParams = ParseDaylightParams(csvArgv);
             ExportToCsv(daylightParams, csvArgv["out"]);
+        }
+    )
+    .command("vector", "Create a vector image file", 
+        vectorArgs => WithDaylightOptions(vectorArgs)
+             .option("out", {
+                alias: "output",
+                required: true
+            })
+            .option("width", {
+                type: "number",
+                default: 1024
+            })
+            .option("height", {
+                type: "number",
+                default: 768
+            })
+            ,
+        vectorArgs => {
+            const daylightParams = ParseDaylightParams(vectorArgs);
+            ExportToSvg(daylightParams, vectorArgs["width"], vectorArgs["height"], vectorArgs["out"]);
         }
     )
     .argv;
@@ -67,11 +95,22 @@ interface DaylightParameters {
     latitude: number,
     longitude: number 
 }
+
+function SanitizeDates(params: DaylightParameters): DaylightParameters {
+    return {
+        latitude: params.latitude,
+        longitude: params.longitude,
+        startDate: params.startDate.clone().startOf("day"),
+        endDate: params.endDate.clone().startOf("day")
+    }
+}
+
 //var startDate = moment({ year: 2015, month: 9, day: 25 })
 //var endDate = moment({year: 2016, month:2, day: 26});
 function GenerateDaylightData(params: DaylightParameters
 ): Daylight[] {
 
+    params = SanitizeDates(params);
     const dayCount = params.endDate.diff(params.startDate, 'day')+1;
 
 
@@ -102,11 +141,15 @@ function ExportToCsv(daylightParams: DaylightParameters, outputFile: string): vo
         .done();
 }
 
-function ExportToSvg(daylightParams: DaylightParameters, outputFile: string): void {
+function ExportToSvg(daylightParams: DaylightParameters, 
+    width: number,
+    height: number,
+    outputFile: string
+): void {
     const data = GenerateDaylightData(daylightParams);
 
     let title = `${Math.abs(daylightParams.latitude).toFixed(3)}°${daylightParams.latitude < 0 ? 'S' : 'N'}, ${Math.abs(daylightParams.longitude).toFixed(3)}°${daylightParams.longitude < 0 ? 'W' : 'E'}`;
-    exSvg.ExportToSvg(data, 1189*10, 841*10, title, 'daylight.svg')
+    exSvg.ExportToSvg(data, width, height, title, outputFile)
     //exSvg.TestSvg('test.svg')
         .then(imagePath => {
             open(imagePath);
