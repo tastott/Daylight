@@ -83,6 +83,8 @@ const argv = yargs
     )
     .argv;
 
+console.log("Complete");
+
 function hoursContinuous(date: Date): number {
     var mom = moment(date);
     return mom.diff(mom.clone().startOf('day'), 'hours', true);
@@ -149,7 +151,7 @@ function ExportToSvg(daylightParams: DaylightParameters,
     const data = GenerateDaylightData(daylightParams);
 
     let title = `${Math.abs(daylightParams.latitude).toFixed(3)}°${daylightParams.latitude < 0 ? 'S' : 'N'}, ${Math.abs(daylightParams.longitude).toFixed(3)}°${daylightParams.longitude < 0 ? 'W' : 'E'}`;
-    exSvg.ExportToSvg(data, width, height, title, outputFile)
+    exSvg.ExportToSvgSafe(data, width, height, title, outputFile, true)
     //exSvg.TestSvg('test.svg')
         .then(imagePath => {
             open(imagePath);

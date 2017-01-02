@@ -74,24 +74,41 @@ export function ExportToSvgSafe(days: Daylight[],
     width: number,
     height: number,
     title : string,
-    filepath: string): Q.Promise<string> {
+    filepath: string,
+    includeMargin: boolean
+): Q.Promise<string> {
 
-    return Q(true)
-        .then(() => ExportToSvg(days, width, height, title, filepath));
+    return q(true)
+        .then(() => ExportToSvg(days, width, height, title, filepath, includeMargin));
 }
 
 export function ExportToSvg(days: Daylight[],
     width: number,
     height: number,
     title : string,
-    filepath: string): Q.Promise<string> {
+    filepath: string,
+    includeMargin?: boolean,
+    labelsOutside?: boolean
+): Q.Promise<string> {
 
     const baseWidth = 1024;
     const baseHeight = 768;
 
-    const margin = 32 * (width / baseHeight);
-    const _innerWidth = Math.floor(width - (margin * 2));
-    const _innerHeight = Math.floor(height - (margin * 2));
+    const margin = includeMargin
+        ? 8 * (width / baseWidth)
+        : 0;
+
+    const axisOffset = includeMargin && labelsOutside
+        ? 0
+        : 24 * (width / baseWidth);
+
+    const _innerWidth = includeMargin
+        ? Math.floor(width - (margin * 2))
+        : width;
+
+    const _innerHeight = includeMargin
+        ? Math.floor(height - (margin * 2))
+        : height;
 
     const axisLabelPaddingX = 16 * (height / baseHeight);
     const axisLabelPaddingY = 4 * (width / baseWidth);
@@ -111,8 +128,8 @@ export function ExportToSvg(days: Daylight[],
     
     const svg = d3.select(document.body)
         .append('svg')
-        .attr('width', _innerWidth + (2 * margin))
-        .attr('height',_innerHeight + (2 * margin));
+        .attr('width', width)
+        .attr('height', height);
 
     const x = d3.time.scale()
         .domain([days[0].Date.toDate(), days[days.length - 1].Date.toDate()])
@@ -191,16 +208,21 @@ export function ExportToSvg(days: Daylight[],
 
 
     const axisGroup = svg.append("g")
-        .attr('transform', 'translate(' + margin + ',' + margin + ')');
+        .attr('transform', `translate(${margin},${margin})`);
 
 
-    const hourAxisGroup = axisGroup.append('g').call(yAxes[0]);
+    const hourAxisGroup = axisGroup.append('g')
+        .call(yAxes[0])
+        .attr('transform', `translate(${axisOffset}, 0)`);
+
     axisGroup.append('g').call(yAxes[1])
-        .attr('transform', 'translate(' + _innerWidth + ', 0)');
+        .attr('transform', `translate(${_innerWidth - axisOffset}, 0)`);
 
-    axisGroup.append('g').call(xAxes[0]);
+    axisGroup.append('g').call(xAxes[0])
+        .attr('transform', `translate(0, ${axisOffset})`);
+
     const dateAxisGroup = axisGroup.append('g').call(xAxes[1])
-        .attr('transform', 'translate(0, ' + _innerHeight + ')');
+        .attr('transform', `translate(0, ${_innerHeight - axisOffset})`);
 
     const defs = svg.append('defs');
 
@@ -212,6 +234,7 @@ export function ExportToSvg(days: Daylight[],
         .style('stroke-width', `${lineWidth}px`)
      axisGroup
         .style('font-size', `${labelSize}px`)
+        .attr('fill', colours[Colour.Twilight])
 
 
     const daylightByDate = _.indexBy(days, day => day.Date.valueOf());
@@ -229,9 +252,9 @@ export function ExportToSvg(days: Daylight[],
   //  setHourLineColors(defs, hourAxisGroup, colours);
 
     svg.append('text')
-        .attr('x', margin + titleMargin)
-        .attr('y', margin + titleMargin + titleSize)
-        .attr('fill', colours[Colour.Day])
+        .attr('x', margin + ((_innerWidth - (titleSize * 10)) / 2))
+        .attr('y', margin + titleSize + ((_innerHeight - titleSize) / 2))
+        .attr('fill', colours[Colour.Night])
         .attr('font-size', titleSize + 'px')
         .text(title);
         
