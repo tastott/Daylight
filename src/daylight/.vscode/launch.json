@@ -9,27 +9,13 @@
 			// Type of configuration. Possible values: "node", "mono".
 			"type": "node",
 			// Workspace relative or absolute path to the program.
-			"program": "${workspaceRoot}/app.ts",
+			"program": "app.ts",
 			// Automatically stop program after launch.
 			"stopOnEntry": false,
 			// Command line arguments passed to the program.
-			// Didcot csv
-			//"args": ["csv", "--lat", "51.606", "--lng", "-1.241", "--out", "data.csv"],
-
-			// // Cardiff csv
-			// "args": ["csv", "--lat", "51.4816", "--lng", "-3.1791", "--out", "data.csv"],
-
-			// Brockweir csv
-			// "args": ["csv", "--lat", "51.7068", "--lng", "-2.6701", "--from", "20161221", "--out", "brockweir.csv"],
-
-			 // 51.4545° N, 2.5879° W
- 			"args": ["csv", "--lat", "51.4545", "--lng", "-2.5879", "--from", "20161221", "--out", "bristol.csv"],
-
-			// Didcot svg
-			//"args": ["vector", "--lat", "51.606", "--lng", "-1.241", "--width", "1024", "--height", "683", "--from", "20161215", "--out", "didcot-2016.svg"],
-
+			"args": [],
 			// Workspace relative or absolute path to the working directory of the program being debugged. Default is the current workspace.
-		//	"cwd": ".",
+			"cwd": ".",
 			// Workspace relative or absolute path to the runtime executable to be used. Default is the runtime executable on the PATH.
 			"runtimeExecutable": null,
 			// Optional arguments passed to the runtime executable.
@@ -57,19 +43,17 @@
 			"type": "node",
 			// Workspace relative or absolute path to the program.
 			// "program": ".\\node_modules\\mocha\\mocha.js",
-			"program": "${workspaceRoot}\node_modules\\mocha\\bin\\_mocha",
+			"program": ".\\node_modules\\mocha\\bin\\_mocha",
 			// Automatically stop program after launch.
 			"stopOnEntry": false,
 			// Command line arguments passed to the program.
-			"args": ["test"],
+			"args": [""],
 			// Workspace relative or absolute path to the working directory of the program being debugged. Default is the current workspace.
-			//"cwd": ".",
+			"cwd": ".",
 			// Workspace relative or absolute path to the runtime executable to be used. Default is the runtime executable on the PATH.
 			"runtimeExecutable": null,
 			// Environment variables passed to the program.
-			"env": { "NODE_ENV": "production"},
-			
-			"sourceMaps": true
+			"env": { "NODE_ENV": "production"}
 		}
 	]
 }

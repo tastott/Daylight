@@ -1,6 +1,6 @@
 ﻿"use strict"
 
-import {Transition, Transitions, Daylight, DaylightState} from './daylight';
+import {Transition, Transitions, Daylight, DaylightState} from 'daylight/models';
 import q = require('q');
 import fs = require('fs');
 import d3 = require('d3');

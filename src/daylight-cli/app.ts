@@ -5,7 +5,7 @@ import _ = require('underscore');
 import moment = require('moment');
 import exCsv = require('./export-csv');
 import exSvg = require('./export-vector');
-import {Transitions, Daylight} from './daylight';
+import {Transitions, Daylight} from 'daylight/models';
 import open = require('open');
 import yargs = require("yargs");
 

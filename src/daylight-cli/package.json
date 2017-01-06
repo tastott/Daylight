@@ -13,6 +13,7 @@
   "dependencies": {
     "csv-stringify": "0.0.5",
     "d3": "^3.5.17",
+    "daylight": "file:..\\daylight",
     "jsdom": "^7.2.2",
     "moment": "^2.9.0",
     "open": "0.0.5",
