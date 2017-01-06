@@ -4,5 +4,8 @@
 		"target": "es6",
 		"sourceMap": true,
 		"skipLibCheck": true
-	}
+	},
+	"include": [
+		"node_modules\\daylight\\local_typings\\d3\\d3.d.ts"
+	]
 }
