@@ -22,11 +22,11 @@
 			// Brockweir csv
 			// "args": ["csv", "--lat", "51.7068", "--lng", "-2.6701", "--from", "20161221", "--out", "brockweir.csv"],
 
-			 // 51.4545° N, 2.5879° W
- 			"args": ["csv", "--lat", "51.4545", "--lng", "-2.5879", "--from", "20161221", "--out", "bristol.csv"],
+			//  // 51.4545° N, 2.5879° W
+ 			// "args": ["csv", "--lat", "51.4545", "--lng", "-2.5879", "--from", "20161221", "--out", "bristol.csv"],
 
 			// Didcot svg
-			//"args": ["vector", "--lat", "51.606", "--lng", "-1.241", "--width", "1024", "--height", "683", "--from", "20161215", "--out", "didcot-2016.svg"],
+			"args": ["vector", "--lat", "51.606", "--lng", "-1.241", "--width", "1024", "--height", "683", "--from", "20161215", "--out", "didcot-2016.svg"],
 
 			// Workspace relative or absolute path to the working directory of the program being debugged. Default is the current workspace.
 		//	"cwd": ".",

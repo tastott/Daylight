@@ -1,5 +1,14 @@
 ﻿import moment = require('moment');
 
+
+
+export interface DaylightParameters {
+    startDate: moment.Moment, 
+    endDate: moment.Moment, 
+    latitude: number,
+    longitude: number 
+}
+
 export enum DaylightState {
     Night,
     Twilight,

@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "yargs": "registry:npm/yargs#5.0.0+20160907000723"
+  },
+  "globalDependencies": {
+    "node": "registry:dt/node#7.0.0+20170110233017"
   }
 }

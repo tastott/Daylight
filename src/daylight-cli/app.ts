@@ -1,13 +1,13 @@
 ﻿"use strict"
 
-var SunCalc = require('suncalc');
 import _ = require('underscore');
 import moment = require('moment');
 import exCsv = require('./export-csv');
 import exSvg = require('./export-vector');
-import {Transitions, Daylight} from 'daylight/models';
+import {Transitions, Daylight, DaylightParameters} from 'daylight/models';
 import open = require('open');
 import yargs = require("yargs");
+import {GenerateDaylightData} from "daylight/daylight-data";
 
 function WithDaylightOptions(args: yargs.Yargs): yargs.Yargs {
     return args
@@ -85,57 +85,9 @@ const argv = yargs
 
 console.log("Complete");
 
-function hoursContinuous(date: Date): number {
-    var mom = moment(date);
-    return mom.diff(mom.clone().startOf('day'), 'hours', true);
-}
-
-
-interface DaylightParameters {
-    startDate: moment.Moment, 
-    endDate: moment.Moment, 
-    latitude: number,
-    longitude: number 
-}
-
-function SanitizeDates(params: DaylightParameters): DaylightParameters {
-    return {
-        latitude: params.latitude,
-        longitude: params.longitude,
-        startDate: params.startDate.clone().startOf("day"),
-        endDate: params.endDate.clone().startOf("day")
-    }
-}
-
 //var startDate = moment({ year: 2015, month: 9, day: 25 })
 //var endDate = moment({year: 2016, month:2, day: 26});
-function GenerateDaylightData(params: DaylightParameters
-): Daylight[] {
 
-    params = SanitizeDates(params);
-    const dayCount = params.endDate.diff(params.startDate, 'day')+1;
-
-
-    const days: Daylight[] = _.range(dayCount - 1)
-        .map(day => {
-            var date = params.startDate.clone().add(day, 'days');
-            var times = SunCalc.getTimes(date.toDate(), params.latitude, params.longitude);
-            return {
-                Date: date,
-                DawnDate: moment(times.dawn),
-                SunriseDate: moment(times.sunrise),
-                SunsetDate: moment(times.sunset),
-                DuskDate: moment(times.dusk),
-                Transitions: <any>{
-                    [Transitions.Dawn.Name]: hoursContinuous(times.dawn),
-                    [Transitions.Sunrise.Name]: hoursContinuous(times.sunrise),
-                    [Transitions.Sunset.Name]: hoursContinuous(times.sunset),
-                    [Transitions.Dusk.Name]: hoursContinuous(times.dusk)
-                }
-            };
-        });
-    return days;
-}
 
 function ExportToCsv(daylightParams: DaylightParameters, outputFile: string): void{
     const data = GenerateDaylightData(daylightParams);
