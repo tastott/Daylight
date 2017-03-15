@@ -8,7 +8,7 @@ import { Provider } from 'react-redux';
 // import routes from './store/routes';
 import rootReducer from "./reducers"
 import {createStore} from "redux";
-import Counter from "./containers/counter";
+import CounterPage from "./containers/counter-page";
 
 const store = createStore(rootReducer);
 // const history = syncHistoryWithStore(browserHistory, store);
@@ -17,7 +17,7 @@ const store = createStore(rootReducer);
     <div>
       <Provider store={ store }>
         <div>
-          <Counter />
+          <CounterPage />
         </div>
       </Provider>
     </div>,

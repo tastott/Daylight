@@ -13,11 +13,13 @@ export default function Counter({
 }: ICounterProps) {
   return (
     <div className="flex">
-      <input type="button" value="-" />
+      <input type="button" value="-" onClick={decrement} />
 
       <div>
         {counter}
       </div>
+
+       <input type="button" value="+" onClick={increment} />
     </div>
   );
 }
