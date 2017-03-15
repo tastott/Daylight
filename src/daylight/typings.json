@@ -2,7 +2,10 @@
   "globalDependencies": {
     "chai": "registry:dt/chai#3.4.0+20160926213833",
     "mocha": "registry:dt/mocha#2.2.5+20161221010438",
-    "moment": "registry:dt/moment#2.11.1+20161010105546"
+    "moment": "registry:dt/moment#2.11.1+20161010105546",
+    "underscore": "registry:dt/underscore#1.8.3+20161123125004"
   },
-  "dependencies": {}
+  "dependencies": {
+    "es6-promise": "registry:common/es6-promise#4.0.0+20161003185919"
+  }
 }

@@ -1,6 +1,7 @@
 declare const require: any;
 import {Daylight, DaylightParameters, Transitions} from "./models";
 import _ = require("underscore");
+import moment = require("moment");
 const SunCalc = require("suncalc");
 
 function SanitizeDates(params: DaylightParameters): DaylightParameters {

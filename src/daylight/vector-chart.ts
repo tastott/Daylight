@@ -1,7 +1,7 @@
 ﻿"use strict"
 
 import {Transition, Transitions, Daylight, DaylightState} from './models';
-import q = require('q');
+import {Promise} from "es6-promise";
 import d3 = require('d3');
 import _ = require('underscore');
 
@@ -26,13 +26,17 @@ interface ColourSet {
 }
 
 export function InsertSvg(days: Daylight[],
-    container: D3.Selection,
+    container: D3.Selection | string,
     width: number,
     height: number,
     title : string,
     includeMargin?: boolean,
     labelsOutside?: boolean
-): q.Promise<boolean> {
+): Promise<boolean> {
+    
+    const d3Container = typeof container === "string"
+        ? d3.select(container)
+        : container;
 
     const baseWidth = 1024;
     const baseHeight = 768;
@@ -67,7 +71,7 @@ export function InsertSvg(days: Daylight[],
     colours[Colour.Twilight] = d3.interpolateRgb(colours[Colour.Night], colours[Colour.Day])(0.5);
     colours[Colour.AxisTicks] = colours[Colour.Day];
 
-    const svg = container
+    const svg = d3Container
         .append('svg')
         .attr('width', width)
         .attr('height', height);
@@ -200,7 +204,7 @@ export function InsertSvg(days: Daylight[],
         .text(title);
         
 
-    return q(true);
+    return Promise.resolve(true);
 }
 
 function *getIntersections(days: Daylight[], transition: Transition, hour: number){
