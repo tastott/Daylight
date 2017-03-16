@@ -1,45 +1,37 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
-
 import { increment, decrement } from '../actions/counter';
 import Viz from '../components/viz';
+import VizState from "../store/viz-state";
 
 interface IVizPageProps extends React.Props<any> {
-  counter: number;
-  increaseCounter: () => void;
-  decreaseCounter: () => void;
+  DataParameters: VizState;
 };
 
-function mapStateToProps(state) {
+function mapStateToProps(state: VizState): IVizPageProps {
   return {
-    counter: state.get('count'),
+    DataParameters: state
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    increaseCounter: (): void => dispatch(increment()),
-    decreaseCounter: (): void  => dispatch(decrement()),
+    // increaseCounter: (): void => dispatch(increment()),
+    // decreaseCounter: (): void  => dispatch(decrement()),
   };
 }
 
 class VizPage extends React.Component<IVizPageProps, void> {
   render() {
-    const { counter, increaseCounter, decreaseCounter } = this.props;
+    const { DataParameters } = this.props;
  
     return (
     <div>
-      <h2
-        data-testid="counter-heading"
-        className="center caps"
-        id="qa-counter-heading">
-        Counter
+      <h2>
+        Visualization
       </h2>
 
-      <Viz
-        counter={ counter }
-        increment={ increaseCounter }
-        decrement={ decreaseCounter } />
+      <Viz latitude = {DataParameters.Latitude} longitude = {DataParameters.Longitude} />
     </div>
     );
   };
@@ -48,4 +40,4 @@ class VizPage extends React.Component<IVizPageProps, void> {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(CounterPage);
+)(VizPage);

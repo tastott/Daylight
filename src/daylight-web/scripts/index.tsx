@@ -8,7 +8,7 @@ import { Provider } from 'react-redux';
 // import routes from './store/routes';
 import rootReducer from "./reducers"
 import {createStore} from "redux";
-import CounterPage from "./containers/counter-page";
+import VizPage from "./containers/viz-page";
 
 const store = createStore(rootReducer);
 // const history = syncHistoryWithStore(browserHistory, store);
@@ -17,7 +17,7 @@ const store = createStore(rootReducer);
     <div>
       <Provider store={ store }>
         <div>
-          <CounterPage />
+          <VizPage />
         </div>
       </Provider>
     </div>,

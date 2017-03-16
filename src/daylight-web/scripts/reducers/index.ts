@@ -4,6 +4,7 @@ import {
 } from '../constants';
 import { fromJS } from 'immutable';
 
+import VizState from "../store/viz-state";
 
 const INITIAL_STATE = fromJS({
   count: 0,
@@ -23,5 +24,13 @@ function counterReducer(state = INITIAL_STATE, action = { type: '' }) {
   }
 }
 
+const initialState: VizState = {
+  Latitude: 50,
+  Longitude: 0
+}
 
-export default counterReducer;
+function vizStateReducer(state: VizState = initialState , action: any = {}) {
+  return state;
+}
+
+export default vizStateReducer;

@@ -3,6 +3,7 @@ import rfd = require("react-faux-dom");
 import {InsertSvg} from "daylight/vector-chart"
 import {GenerateDaylightData} from "daylight/daylight-data"
 import moment = require("moment");
+import d3 = require("d3");
 
 interface IVizProps extends React.Props<any> {
     latitude: number;
@@ -22,7 +23,7 @@ export default function Viz({
         longitude: longitude
     });
 
-    InsertSvg(daylightData, container, 600, 400, "Test");
+    InsertSvg(daylightData, d3.select(container), 600, 400, "Test");
 
     return container.toReact();
 }

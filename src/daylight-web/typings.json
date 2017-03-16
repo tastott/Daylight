@@ -1,8 +1,12 @@
 {
   "globalDependencies": {
-    "moment": "registry:dt/moment#2.11.1+20161010105546"
+    "moment": "registry:dt/moment#2.11.1+20161010105546",
+    "redux": "registry:dt/redux#3.5.2+20160703092728"
   },
   "dependencies": {
-    "react": "registry:npm/react#15.0.1+20170104200836"
+    "d3": "registry:npm/d3#3.0.0+20160723033700",
+    "es6-promise": "registry:common/es6-promise#4.0.0+20161003185919",
+    "react": "registry:npm/react#15.0.1+20170104200836",
+    "react-redux": "registry:npm/react-redux#4.4.0+20160614222153"
   }
 }
