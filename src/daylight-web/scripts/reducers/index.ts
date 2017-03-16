@@ -2,35 +2,29 @@ import {
   INCREMENT_COUNTER,
   DECREMENT_COUNTER
 } from '../constants';
-import { fromJS } from 'immutable';
-
+import immutable = require('immutable');
+import {Action} from "../actions/viz";
 import VizState from "../store/viz-state";
 
-const INITIAL_STATE = fromJS({
-  count: 0,
-});
-
-function counterReducer(state = INITIAL_STATE, action = { type: '' }) {
-  switch (action.type) {
-
-  case INCREMENT_COUNTER:
-    return state.update('count', (value) => value + 1);
-
-  case DECREMENT_COUNTER:
-    return state.update('count', (value) => value - 1);
-    
-  default:
-    return state;
-  }
-}
 
 const initialState: VizState = {
   Latitude: 50,
   Longitude: 0
 }
 
-function vizStateReducer(state: VizState = initialState , action: any = {}) {
-  return state;
+function vizStateReducer(state: VizState = initialState , action: Action = {type: "Default"}): VizState {
+  switch(action.type){
+    default: return state;
+    case "UpdateLatitude":
+      return <any>immutable.Map(state)
+        .set("Latitude", action.Value)
+        .toObject() as VizState;
+
+     case "UpdateLongitude":
+      return <any>immutable.Map(state)
+        .set("Longitude", action.Value)
+        .toObject() as VizState;
+  }
 }
 
 export default vizStateReducer;
