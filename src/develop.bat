@@ -13,4 +13,6 @@ cd ../
 
 cd daylight-web
 call npm install
+call typings install
+call npm link ../daylight
 cd ../

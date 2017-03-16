@@ -18,7 +18,7 @@
     "webpack-dev-server": "^1.16.2"
   },
   "dependencies": {
-    "daylight": "file:///C:\\Users\\Tim\\Code\\Daylight\\src\\daylight",
+    "daylight": "file:..\\daylight",
     "immutable": "^3.8.1",
     "moment": "^2.17.1",
     "react": "^15.4.2",
