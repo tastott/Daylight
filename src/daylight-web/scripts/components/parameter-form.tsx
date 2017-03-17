@@ -1,15 +1,7 @@
 import * as React from 'react';
 import immutable = require("immutable");
+import {Parameters} from "../shared/models/parameter";
 
-interface NumberParameter {
-    type: "number",
-    value: number;
-}
-
-export type Parameter = NumberParameter;
-export interface Parameters {
-    [name: string]: Parameter
-}
 export interface IParameterFormProps extends React.Props<any> {
     parameters: Parameters;
     update(name: string, value: any): void;

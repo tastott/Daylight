@@ -1,18 +1,20 @@
 
-export interface UpdateAction {
-    type: "UpdateLatitude" | "UpdateLongitude";
-    Value: number;
+export interface UpdateDataParameterAction {
+    type: "UpdateDataParameter";
+    name: string;
+    value: any;
 }
 
-export type Action = UpdateAction
+export type Action = UpdateDataParameterAction
 | {
-    type: "Default"
+    type: ""
 }
 
-export function UpdateValue(type: "UpdateLatitude" | "UpdateLongitude", value: number): UpdateAction {
+export function UpdateDataParameter(name: string, value: number): UpdateDataParameterAction {
     return {
-        type: type,
-        Value: value
+        type: "UpdateDataParameter",
+        name,
+        value
     };
 }
 

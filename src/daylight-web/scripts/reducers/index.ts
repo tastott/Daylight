@@ -1,28 +1,29 @@
-import {
-  INCREMENT_COUNTER,
-  DECREMENT_COUNTER
-} from '../constants';
+
 import immutable = require('immutable');
 import {Action} from "../actions/viz";
 import VizState from "../store/viz-state";
-
+import {Mutate} from "../shared/utilities";
 
 const initialState: VizState = {
-  Latitude: 50,
-  Longitude: 0
+  VizName: "Daylight",
+  DataParameters: {
+    Latitude: {
+      type: "number",
+      value: 50
+    },
+    Longitude: {
+      type: "number",
+      value: 0
+    }
+  }
 }
 
-function vizStateReducer(state: VizState = initialState , action: Action = {type: "Default"}): VizState {
+function vizStateReducer(state: VizState = initialState , action: Action = {type: ""}): VizState {
   switch(action.type){
     default: return state;
-    case "UpdateLatitude":
-      return <any>immutable.Map(state)
-        .set("Latitude", action.Value)
-        .toObject() as VizState;
-
-     case "UpdateLongitude":
-      return <any>immutable.Map(state)
-        .set("Longitude", action.Value)
+    case "UpdateDataParameter":
+      return <any>immutable.Map(state.DataParameters)
+        .update(action.name, existing => Mutate(existing, { value: action.value}) )
         .toObject() as VizState;
   }
 }

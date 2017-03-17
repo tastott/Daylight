@@ -1,47 +1,36 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
-import { UpdateValue } from "../actions/viz";
+import { UpdateDataParameter } from "../actions/viz";
 import Viz from '../components/viz';
 import VizState from "../store/viz-state";
-import {ParameterForm, Parameters} from "../components/parameter-form";
+import {ParameterForm} from "../components/parameter-form";
+import {Parameters} from "../shared/models/parameter";
 
 interface IVizPageProps extends React.Props<any> {
-  DataParameters: VizState;
-  UpdateLatitude(value: number): void;
-  UpdateLongitude(value: number): void;
+    Parameters: Readonly<Parameters>;
+    Updates: Parameters;
+    Update(name: string, value: any): void
 };
 
 function mapStateToProps(state: VizState): Partial<IVizPageProps> {
   return {
-    DataParameters: state
+      Parameters: state.DataParameters,
+      Updates: {}
   };
 }
 
 function mapDispatchToProps(dispatch): Partial<IVizPageProps> {
   return {
-    UpdateLatitude: (value: number): void => 
-      dispatch(UpdateValue("UpdateLatitude", value))
-    ,
-    UpdateLongitude: (value: number): void =>
-      dispatch(UpdateValue("UpdateLongitude", value))
-    // increaseCounter: (): void => dispatch(increment()),
-    // decreaseCounter: (): void  => dispatch(decrement()),
+    Update: (name: string, value: any) => {
+      dispatch(UpdateDataParameter(name, value));
+    }
   };
 }
 
 class VizPage extends React.Component<IVizPageProps, void> {
 
-  handleUpdate = (event: React.FormEvent) => {
-    this.props.UpdateLatitude(parseFloat(event.target["value"]));
-  }
-
   update = (name: string, value: any): void => {
-    if (name == "Longitude"){
-      this.props.UpdateLongitude(value);
-    }
-    else if (name == "Latitude") {
-      this.props.UpdateLatitude(value);
-    }
+    this.props.Update(name, value);
   }
 
   submit = (): void => {
@@ -49,18 +38,7 @@ class VizPage extends React.Component<IVizPageProps, void> {
   }
 
   render() {
-    const { DataParameters } = this.props;
- 
-    const formParameters: Parameters = {
-      Latitude: {
-        type: "number",
-        value: DataParameters.Latitude
-      },
-      Longitude: {
-        type: "number",
-        value: DataParameters.Longitude
-      }
-    }
+    const { Parameters } = this.props;
 
     return (
     <div>
@@ -68,8 +46,8 @@ class VizPage extends React.Component<IVizPageProps, void> {
         Daylight hours
       </h2>
       {/*<input type="text" value={DataParameters.Latitude.toString()} onChange={this.handleUpdate} />*/}
-      <ParameterForm parameters={formParameters} update={this.update} submit={this.submit} />
-      <Viz latitude = {DataParameters.Latitude} longitude = {DataParameters.Longitude} />
+      <ParameterForm parameters={Parameters} update={this.update} submit={this.submit} />
+      <Viz DataParameters={Parameters} />
     </div>
     );
   };

@@ -1,6 +1,8 @@
+import {Parameters} from "../shared/models/parameter";
+
 export interface VizState {
-    Latitude: number;
-    Longitude: number;
+    VizName: string;
+    DataParameters: Parameters;
 }
 
 export default VizState;
