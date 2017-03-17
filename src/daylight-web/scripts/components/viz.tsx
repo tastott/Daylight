@@ -23,7 +23,7 @@ export default function Viz({
         longitude: longitude
     });
 
-    InsertSvg(daylightData, d3.select(container), 600, 400, "Test");
+    InsertSvg(daylightData, d3.select(container), 800, 600, "Test");
 
     return container.toReact();
 }
